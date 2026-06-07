@@ -1,0 +1,49 @@
+// v17 複数出力テスト: outColor と outHeight を別々の平面で同時表示
+file -f -new;
+catch(`unloadPlugin "VMTHexTilePoc_v17"`);
+loadPlugin "C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/build/Release/VMTHexTilePoc_v18.mll";
+
+string $hex = `createNode VMTHexTilePoc`;
+string $p2d = `shadingNode -asUtility place2dTexture`;
+connectAttr -f ($p2d+".outUV") ($hex+".uvCoord");
+connectAttr -f ($p2d+".outUvFilterSize") ($hex+".uvFilterSize");
+
+// --- albedo (sRGB) ---
+string $f=`shadingNode -asTexture -isColorManaged file`;
+string $fp=`shadingNode -asUtility place2dTexture`;
+connectAttr -f ($fp+".outUV") ($f+".uvCoord");
+connectAttr -f ($fp+".outUvFilterSize") ($f+".uvFilterSize");
+setAttr -type "string" ($f+".fileTextureName") "L:/Megascans/Downloaded/surface/rock_cliffs_tdwlcc1l/tdwlcc1l_8K_Albedo.png";
+connectAttr -f ($f+".outColor") ($hex+".colorMaps[0]");
+
+// --- height (Raw) ---
+string $h=`shadingNode -asTexture -isColorManaged file`;
+string $hp=`shadingNode -asUtility place2dTexture`;
+connectAttr -f ($hp+".outUV") ($h+".uvCoord");
+connectAttr -f ($hp+".outUvFilterSize") ($h+".uvFilterSize");
+setAttr ($h+".colorSpace") -type "string" "Raw";
+setAttr -type "string" ($h+".fileTextureName") "L:/Megascans/Downloaded/surface/rock_cliffs_tdwlcc1l/tdwlcc1l_8K_Displacement.png";
+connectAttr -f ($h+".outColor") ($hex+".heightMap");
+
+// === 平面1: outColor ===
+string $shC=`shadingNode -asShader lambert`;
+string $sgC=`sets -renderable true -noSurfaceShader true -empty -name hexColorSG`;
+connectAttr -f ($shC+".outColor") ($sgC+".surfaceShader");
+connectAttr -f ($hex+".outColor") ($shC+".color");
+string $plC[]=`polyPlane -w 10 -h 10 -sx 1 -sy 1`;
+setAttr ($plC[0]+".translateX") -6;
+select -r $plC[0]; sets -e -forceElement $sgC;
+
+// === 平面2: outHeight をグレースケール表示 (outHeight→color R/G/B) ===
+string $shH=`shadingNode -asShader lambert`;
+string $sgH=`sets -renderable true -noSurfaceShader true -empty -name hexHeightSG`;
+connectAttr -f ($shH+".outColor") ($sgH+".surfaceShader");
+connectAttr -f ($hex+".outHeight") ($shH+".colorR");
+connectAttr -f ($hex+".outHeight") ($shH+".colorG");
+connectAttr -f ($hex+".outHeight") ($shH+".colorB");
+string $plH[]=`polyPlane -w 10 -h 10 -sx 1 -sy 1`;
+setAttr ($plH[0]+".translateX") 6;
+select -r $plH[0]; sets -e -forceElement $sgH;
+
+modelEditor -e -displayTextures true `getPanel -withFocus`;
+print("== v17 multiout test ready: left=outColor, right=outHeight ==\n");

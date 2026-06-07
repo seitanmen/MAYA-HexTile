@@ -1,0 +1,9 @@
+# ビルド成果物（大きいので除外。動作mllは backup/ と dist/ に保存）
+build/
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.map
+.vs/

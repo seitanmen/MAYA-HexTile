@@ -1,0 +1,36 @@
+// AEVMTHexTilePocTemplate.mel
+// VMTHexTilePoc 用 Attribute Editor テンプレート（任意・レイアウト整形のみ）。
+// colorMap0..7 / outColor0..7 は独立属性なので、テンプレート無しでも
+// デフォルト AE に固定 8 スロットで表示され「Add New Item」は出ない。
+// このテンプレートは見やすいグループ分けを行うだけ。
+// 使い方: MAYA_SCRIPT_PATH 上に置くか Script Editor で source する。
+// Copyright (c) 2026 kawata / VMT.
+
+global proc AEVMTHexTilePocTemplate(string $nodeName)
+{
+    editorTemplate -beginScrollLayout;
+
+    editorTemplate -beginLayout "Color Maps (0-7)" -collapse 0;
+        for ($i = 0; $i < 8; $i++)
+            editorTemplate -addControl ("colorMap" + $i);
+    editorTemplate -endLayout;
+
+    editorTemplate -beginLayout "Tiling" -collapse 0;
+        editorTemplate -addControl "tileScale";
+        editorTemplate -addControl "rotStrength";
+    editorTemplate -endLayout;
+
+    editorTemplate -beginLayout "Height Blend" -collapse 0;
+        editorTemplate -addControl "heightMap";
+        editorTemplate -addControl "heightWeight";
+        editorTemplate -addControl "heightDelta";
+    editorTemplate -endLayout;
+
+    editorTemplate -beginLayout "Normal" -collapse 0;
+        editorTemplate -addControl "normalMap";
+        editorTemplate -addControl "normalConvention";
+    editorTemplate -endLayout;
+
+    editorTemplate -addExtraControls;
+    editorTemplate -endScrollLayout;
+}

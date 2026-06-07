@@ -1,0 +1,63 @@
+// setup_poc.mel — VMT HexTile PoC テストシーン構築
+//
+// 使い方（Maya Script Editor / MEL）:
+//   loadPlugin "VMTHexTilePoc";          // .mll をプラグインパスに置くか絶対パス指定
+//   source "setup_poc.mel";
+//   vmtPocBuild("C:/path/to/your_tileable_texture.png");
+//
+// 期待結果: ビューポート(VP2, テクスチャ表示)で平面が六角タイリングされて見える。
+//   - file をシームレスにタイラブルなテクスチャにすると効果が分かりやすい。
+
+global proc vmtPocBuild(string $texturePath)
+{
+    file -f -new;
+
+    // 表示用の平面
+    string $pl[] = `polyPlane -w 10 -h 10 -sx 1 -sy 1 -name vmtPocPlane`;
+
+    // 入力テクスチャ（file ノード）
+    string $file = `shadingNode -asTexture -isColorManaged file`;
+    string $p2d  = `shadingNode -asUtility place2dTexture`;
+    connectAttr -f ($p2d + ".outUV") ($file + ".uvCoord");
+    connectAttr -f ($p2d + ".outUvFilterSize") ($file + ".uvFilterSize");
+    if (size($texturePath) > 0)
+        setAttr -type "string" ($file + ".fileTextureName") $texturePath;
+
+    // PoC ノード
+    string $hex = `createNode VMTHexTilePoc -name vmtHexTilePoc1`;
+    setAttr ($hex + ".tileScale") 3.0;
+    setAttr ($hex + ".rotStrength") 0.6;
+
+    // file のテクスチャ出力を colorMaps[0] へ（= テクスチャ実体をバインド）
+    connectAttr -f ($file + ".outColor") ($hex + ".colorMaps[0]");
+
+    // サーフェスシェーダへ
+    string $sh   = `shadingNode -asShader lambert -name vmtPocLambert`;
+    string $sg   = `sets -renderable true -noSurfaceShader true -empty -name vmtPocLambertSG`;
+    connectAttr -f ($sh + ".outColor") ($sg + ".surfaceShader");
+    connectAttr -f ($hex + ".outColor") ($sh + ".color");
+
+    // 平面へ割り当て
+    select -r $pl[0];
+    sets -e -forceElement $sg;
+
+    // VP2 テクスチャ表示
+    string $panel = `getPanel -withFocus`;
+    if (`getPanel -typeOf $panel` == "modelPanel")
+        modelEditor -e -displayTextures true -displayAppearance smoothShaded $panel;
+
+    print("// VMT PoC: built. Connect more files to colorMaps[1..] to test dynamic regen.\n");
+}
+
+// 動的再生成テスト: 2 枚目を colorMaps[1] に繋ぐ
+global proc vmtPocAddMap(string $texturePath)
+{
+    string $file = `shadingNode -asTexture -isColorManaged file`;
+    string $p2d  = `shadingNode -asUtility place2dTexture`;
+    connectAttr -f ($p2d + ".outUV") ($file + ".uvCoord");
+    connectAttr -f ($p2d + ".outUvFilterSize") ($file + ".uvFilterSize");
+    if (size($texturePath) > 0)
+        setAttr -type "string" ($file + ".fileTextureName") $texturePath;
+    connectAttr -f ($file + ".outColor") "vmtHexTilePoc1.colorMaps[1]";
+    print("// VMT PoC: colorMaps[1] connected -> fragment should regenerate (c1 -> c2).\n");
+}

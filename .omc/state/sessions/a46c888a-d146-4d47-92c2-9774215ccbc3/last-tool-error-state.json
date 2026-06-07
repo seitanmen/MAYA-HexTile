@@ -1,0 +1,7 @@
+{
+  "tool_name": "PowerShell",
+  "tool_input_preview": "{\"command\":\"cd C:\\\\Users\\\\vmtadmin\\\\Downloads\\\\work\\\\Maya_hex_tile\\\\maya_hextile; cmake --build build --config Release 2>&1 | Select-Object -Last 4\"}",
+  "error": "Exit code 1\nMSBuild のバージョン 17.14.19+164abd434 (.NET Framework)\r\n\r\nLINK : fatal error LNK1104: ファイル 'C:\\Users\\vmtadmin\\Downloads\\work\\Maya_hex_tile\\maya_hextile\\build\\Release\\VMTHexTilePoc.mll' を開くことができません。 [C:\\Users\\vmtadmin\\Downloads\\work\\Maya_hex_tile\\maya_hextile\\build\\VMTHexTilePoc.vcxproj]",
+  "timestamp": "2026-06-06T17:54:35.390Z",
+  "retry_count": 1
+}
