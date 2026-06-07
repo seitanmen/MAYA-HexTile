@@ -1,0 +1,199 @@
+// vmtHexTile.osl — VMT HexTile（Arnold / Redshift 用 OSL 実装）
+// VP2(HLSL) 版と同一の確率的六角タイリングを移植。
+//   - color: 8 スロット（colorMap0..7、未接続は "" で黒）
+//   - height blend: heightMap 接続時は高さ駆動の重み、未接続は w^7
+//   - normal: derivative 空間ブレンド＋再正規化、DirectX/OpenGL 切替
+//   - per-map sRGB デコード（srgb{i}=1 で sRGB→linear）
+// Copyright (c) 2026 kawata / VMT.
+#include "stdosl.h"
+
+float vmtfrac(float x) { return x - floor(x); }
+
+// 三角格子の重み w(3) と 3 頂点 v1,v2,v3 を返す
+void vmt_tri(float sx, float sy,
+             output float w0, output float w1, output float w2,
+             output float v1x, output float v1y,
+             output float v2x, output float v2y,
+             output float v3x, output float v3y)
+{
+    float sc = 2.0 * 1.7320508;
+    float ax = sx * sc, ay = sy * sc;
+    float skx = ax - 0.57735027 * ay;
+    float sky = 1.15470054 * ay;
+    float bx = floor(skx), by = floor(sky);
+    float fx = skx - bx, fy = sky - by, fz = 1.0 - fx - fy;
+    float g = (fz < 0.0) ? 1.0 : 0.0;
+    float s2 = 2.0 * g - 1.0;
+    w0 = -fz * s2; w1 = g - fy * s2; w2 = g - fx * s2;
+    v1x = bx + g;       v1y = by + g;
+    v2x = bx + g;       v2y = by + 1.0 - g;
+    v3x = bx + 1.0 - g; v3y = by + g;
+}
+
+void vmt_hash2(float vx, float vy, output float hx, output float hy)
+{
+    hx = vmtfrac(sin(vx * 127.1 + vy * 311.7) * 43758.5453);
+    hy = vmtfrac(sin(vx * 269.5 + vy * 183.3) * 43758.5453);
+}
+
+void vmt_cen(float vx, float vy, output float cx, output float cy)
+{
+    float id = 1.0 / (2.0 * 1.7320508);
+    cx = (vx + 0.5 * vy) * id;
+    cy = (0.8660254 * vy) * id;
+}
+
+void vmt_rot(float ix, float iy, float rs, output float ca, output float sa)
+{
+    float PI = 3.14159265, TAU = 6.28318531;
+    float a = abs(ix * iy) + abs(ix + iy) + PI;
+    a = mod(a, TAU);
+    if (a > PI) a -= TAU;
+    a *= rs;
+    ca = cos(a); sa = sin(a);
+}
+
+// タイル v の回転＋ハッシュオフセットを適用した再サンプリング UV
+void vmt_tuv(float stx, float sty, float vx, float vy, float rs,
+             output float ox, output float oy)
+{
+    float cx, cy; vmt_cen(vx, vy, cx, cy);
+    float ca, sa; vmt_rot(vx, vy, rs, ca, sa);
+    float hx, hy; vmt_hash2(vx, vy, hx, hy);
+    float dx = stx - cx, dy = sty - cy;
+    ox = (ca * dx - sa * dy) + cx + hx;
+    oy = (sa * dx + ca * dy) + cy + hy;
+}
+
+color vmt_s2l(color c)
+{
+    return color(
+        c[0] <= 0.04045 ? c[0] / 12.92 : pow((c[0] + 0.055) / 1.055, 2.4),
+        c[1] <= 0.04045 ? c[1] / 12.92 : pow((c[1] + 0.055) / 1.055, 2.4),
+        c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
+}
+
+// V 反転込みのテクスチャサンプル（Maya UV と OSL t 原点差の吸収）
+color vmt_smp(string fn, float sx, float sy)
+{
+    return (color) texture(fn, vmtfrac(sx), 1.0 - vmtfrac(sy), "wrap", "periodic");
+}
+
+shader vmtHexTile
+[[ string help = "VMT stochastic hex tiling (Arnold/Redshift)" ]]
+(
+    float  uvU = u,
+    float  uvV = v,
+    float  tileScale   = 2.0,
+    float  rotStrength = 0.5,
+
+    string colorMap0 = "", int srgb0 = 1,
+    string colorMap1 = "", int srgb1 = 1,
+    string colorMap2 = "", int srgb2 = 1,
+    string colorMap3 = "", int srgb3 = 1,
+    string colorMap4 = "", int srgb4 = 1,
+    string colorMap5 = "", int srgb5 = 1,
+    string colorMap6 = "", int srgb6 = 1,
+    string colorMap7 = "", int srgb7 = 1,
+
+    string heightMap    = "",
+    float  heightWeight = 1.0,
+    float  heightDelta  = 0.2,
+
+    string normalMap     = "",
+    int    normalFlipY   = 0,   // 1 = DirectX
+
+    output color outColor0 = 0, output color outColor1 = 0,
+    output color outColor2 = 0, output color outColor3 = 0,
+    output color outColor4 = 0, output color outColor5 = 0,
+    output color outColor6 = 0, output color outColor7 = 0,
+    output float outHeight = 0,
+    output normal outNormal = normal(0, 0, 1)
+)
+{
+    float stx = uvU * tileScale;
+    float sty = uvV * tileScale;
+
+    float w0, w1, w2, v1x, v1y, v2x, v2y, v3x, v3y;
+    vmt_tri(stx, sty, w0, w1, w2, v1x, v1y, v2x, v2y, v3x, v3y);
+
+    float u1x, u1y, u2x, u2y, u3x, u3y;
+    vmt_tuv(stx, sty, v1x, v1y, rotStrength, u1x, u1y);
+    vmt_tuv(stx, sty, v2x, v2y, rotStrength, u2x, u2y);
+    vmt_tuv(stx, sty, v3x, v3y, rotStrength, u3x, u3y);
+
+    // ---- ブレンド重み W（height 駆動 or grid^7）----
+    float W0, W1, W2;
+    float h1 = 0, h2 = 0, h3 = 0;
+    int useHeight = (heightMap != "");
+    if (useHeight) {
+        h1 = (float) texture(heightMap, vmtfrac(u1x), 1.0 - vmtfrac(u1y), "wrap", "periodic");
+        h2 = (float) texture(heightMap, vmtfrac(u2x), 1.0 - vmtfrac(u2y), "wrap", "periodic");
+        h3 = (float) texture(heightMap, vmtfrac(u3x), 1.0 - vmtfrac(u3y), "wrap", "periodic");
+        float r0 = w0 + heightWeight * h1;
+        float r1 = w1 + heightWeight * h2;
+        float r2 = w2 + heightWeight * h3;
+        float dl = max(heightDelta * 0.70710678, 0.0001);
+        // softTwinThreshold = min(soft(a,b), soft(a,c))
+        float s01 = clamp((r0 - r1 + dl) / dl, 0.0, 1.0);
+        float s02 = clamp((r0 - r2 + dl) / dl, 0.0, 1.0);
+        float s10 = clamp((r1 - r0 + dl) / dl, 0.0, 1.0);
+        float s12 = clamp((r1 - r2 + dl) / dl, 0.0, 1.0);
+        float s20 = clamp((r2 - r0 + dl) / dl, 0.0, 1.0);
+        float s21 = clamp((r2 - r1 + dl) / dl, 0.0, 1.0);
+        W0 = min(s01, s02);
+        W1 = min(s10, s12);
+        W2 = min(s20, s21);
+    } else {
+        W0 = pow(max(w0, 0.0), 7.0);
+        W1 = pow(max(w1, 0.0), 7.0);
+        W2 = pow(max(w2, 0.0), 7.0);
+    }
+    float sm = W0 + W1 + W2;
+    if (sm > 0.0) { W0 /= sm; W1 /= sm; W2 /= sm; }
+
+    // ---- カラー 8 スロット ----
+    string cm[8]  = { colorMap0, colorMap1, colorMap2, colorMap3,
+                      colorMap4, colorMap5, colorMap6, colorMap7 };
+    int    sg[8]  = { srgb0, srgb1, srgb2, srgb3, srgb4, srgb5, srgb6, srgb7 };
+    color  oc[8]  = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    for (int i = 0; i < 8; i = i + 1) {
+        if (cm[i] != "") {
+            color c1 = vmt_smp(cm[i], u1x, u1y);
+            color c2 = vmt_smp(cm[i], u2x, u2y);
+            color c3 = vmt_smp(cm[i], u3x, u3y);
+            if (sg[i] != 0) { c1 = vmt_s2l(c1); c2 = vmt_s2l(c2); c3 = vmt_s2l(c3); }
+            oc[i] = W0 * c1 + W1 * c2 + W2 * c3;
+        }
+    }
+    outColor0 = oc[0]; outColor1 = oc[1]; outColor2 = oc[2]; outColor3 = oc[3];
+    outColor4 = oc[4]; outColor5 = oc[5]; outColor6 = oc[6]; outColor7 = oc[7];
+
+    // ---- height 出力 ----
+    outHeight = useHeight ? (W0 * h1 + W1 * h2 + W2 * h3) : 0.0;
+
+    // ---- normal（derivative 空間ブレンド）----
+    if (normalMap != "") {
+        float fy = (normalFlipY != 0) ? -1.0 : 1.0;
+        color n1c = vmt_smp(normalMap, u1x, u1y);
+        color n2c = vmt_smp(normalMap, u2x, u2y);
+        color n3c = vmt_smp(normalMap, u3x, u3y);
+        vector N1 = vector(n1c[0] * 2 - 1, (n1c[1] * 2 - 1) * fy, n1c[2] * 2 - 1);
+        vector N2 = vector(n2c[0] * 2 - 1, (n2c[1] * 2 - 1) * fy, n2c[2] * 2 - 1);
+        vector N3 = vector(n3c[0] * 2 - 1, (n3c[1] * 2 - 1) * fy, n3c[2] * 2 - 1);
+        // 各タイル回転に合わせて N.xy を回転
+        float c1a, s1a, c2a, s2a, c3a, s3a;
+        vmt_rot(v1x, v1y, rotStrength, c1a, s1a);
+        vmt_rot(v2x, v2y, rotStrength, c2a, s2a);
+        vmt_rot(v3x, v3y, rotStrength, c3a, s3a);
+        N1 = vector(c1a * N1[0] - s1a * N1[1], s1a * N1[0] + c1a * N1[1], N1[2]);
+        N2 = vector(c2a * N2[0] - s2a * N2[1], s2a * N2[0] + c2a * N2[1], N2[2]);
+        N3 = vector(c3a * N3[0] - s3a * N3[1], s3a * N3[0] + c3a * N3[1], N3[2]);
+        float g1x = -N1[0] / max(N1[2], 0.001), g1y = -N1[1] / max(N1[2], 0.001);
+        float g2x = -N2[0] / max(N2[2], 0.001), g2y = -N2[1] / max(N2[2], 0.001);
+        float g3x = -N3[0] / max(N3[2], 0.001), g3y = -N3[1] / max(N3[2], 0.001);
+        float Gx = W0 * g1x + W1 * g2x + W2 * g3x;
+        float Gy = W0 * g1y + W1 * g2y + W2 * g3y;
+        outNormal = (normal) normalize(vector(-Gx, -Gy, 1.0));
+    }
+}
