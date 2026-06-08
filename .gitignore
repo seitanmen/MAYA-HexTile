@@ -10,3 +10,6 @@ build/
 
 # OSL コンパイル成果物
 *.oso
+
+# OMC 内部状態
+.omc/
