@@ -1,0 +1,130 @@
+// vmtHexTileOne.osl — 先行確認用（単一カラーマップ・単一出力）
+// aiOslShader / Redshift OSL で扱いやすいよう出力を 1 つ(outColor)に絞った版。
+// 六角タイリング＋境界点線消去（明示フットプリント）の見た目検証用。
+// 本番の複数出力版は vmtHexTile.osl。
+// Copyright (c) 2026 kawata / VMT.
+#include "stdosl.h"
+
+float vmtfrac(float x) { return x - floor(x); }
+
+void vmt_tri(float sx, float sy,
+             output float w0, output float w1, output float w2,
+             output float v1x, output float v1y,
+             output float v2x, output float v2y,
+             output float v3x, output float v3y)
+{
+    float sc = 2.0 * 1.7320508;
+    float ax = sx * sc, ay = sy * sc;
+    float skx = ax - 0.57735027 * ay;
+    float sky = 1.15470054 * ay;
+    float bx = floor(skx), by = floor(sky);
+    float fx = skx - bx, fy = sky - by, fz = 1.0 - fx - fy;
+    float g = (fz < 0.0) ? 1.0 : 0.0;
+    float s2 = 2.0 * g - 1.0;
+    w0 = -fz * s2; w1 = g - fy * s2; w2 = g - fx * s2;
+    v1x = bx + g;       v1y = by + g;
+    v2x = bx + g;       v2y = by + 1.0 - g;
+    v3x = bx + 1.0 - g; v3y = by + g;
+}
+
+void vmt_hash2(float vx, float vy, output float hx, output float hy)
+{
+    hx = vmtfrac(sin(vx * 127.1 + vy * 311.7) * 43758.5453);
+    hy = vmtfrac(sin(vx * 269.5 + vy * 183.3) * 43758.5453);
+}
+
+void vmt_cen(float vx, float vy, output float cx, output float cy)
+{
+    float id = 1.0 / (2.0 * 1.7320508);
+    cx = (vx + 0.5 * vy) * id;
+    cy = (0.8660254 * vy) * id;
+}
+
+void vmt_rot(float ix, float iy, float rs, output float ca, output float sa)
+{
+    float PI = 3.14159265, TAU = 6.28318531;
+    float a = abs(ix * iy) + abs(ix + iy) + PI;
+    a = mod(a, TAU);
+    if (a > PI) a -= TAU;
+    a *= rs;
+    ca = cos(a); sa = sin(a);
+}
+
+void vmt_tuv(float stx, float sty, float vx, float vy, float rs,
+             output float ox, output float oy)
+{
+    float cx, cy; vmt_cen(vx, vy, cx, cy);
+    float ca, sa; vmt_rot(vx, vy, rs, ca, sa);
+    float hx, hy; vmt_hash2(vx, vy, hx, hy);
+    float dx = stx - cx, dy = sty - cy;
+    ox = (ca * dx - sa * dy) + cx + hx;
+    oy = (sa * dx + ca * dy) + cy + hy;
+}
+
+color vmt_s2l(color c)
+{
+    return color(
+        c[0] <= 0.04045 ? c[0] / 12.92 : pow((c[0] + 0.055) / 1.055, 2.4),
+        c[1] <= 0.04045 ? c[1] / 12.92 : pow((c[1] + 0.055) / 1.055, 2.4),
+        c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
+}
+
+// 明示フットプリント付きサンプル（境界の点線=ミップ不連続を回避）
+color vmt_smpD(string fn, float ux, float uy, float ca, float sa,
+               float dStxDx, float dStxDy, float dStyDx, float dStyDy)
+{
+    float duDx = ca * dStxDx - sa * dStyDx;
+    float duDy = ca * dStxDy - sa * dStyDy;
+    float dvDx = sa * dStxDx + ca * dStyDx;
+    float dvDy = sa * dStxDy + ca * dStyDy;
+    return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+        "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+        "wrap", "periodic");
+}
+
+shader vmtHexTileOne
+[[ string help = "VMT hex tiling (single map, single output) — verification" ]]
+(
+    float  uvU = u,
+    float  uvV = v,
+    float  tileScale   = 4.0,
+    float  rotStrength = 0.5,
+    string colorMap = "",
+    int    srgb = 1,
+    output color outColor = 0
+)
+{
+    float stx = uvU * tileScale;
+    float sty = uvV * tileScale;
+
+    float w0, w1, w2, v1x, v1y, v2x, v2y, v3x, v3y;
+    vmt_tri(stx, sty, w0, w1, w2, v1x, v1y, v2x, v2y, v3x, v3y);
+
+    float u1x, u1y, u2x, u2y, u3x, u3y;
+    vmt_tuv(stx, sty, v1x, v1y, rotStrength, u1x, u1y);
+    vmt_tuv(stx, sty, v2x, v2y, rotStrength, u2x, u2y);
+    vmt_tuv(stx, sty, v3x, v3y, rotStrength, u3x, u3y);
+
+    float ca1, sa1, ca2, sa2, ca3, sa3;
+    vmt_rot(v1x, v1y, rotStrength, ca1, sa1);
+    vmt_rot(v2x, v2y, rotStrength, ca2, sa2);
+    vmt_rot(v3x, v3y, rotStrength, ca3, sa3);
+    float dStxDx = Dx(stx), dStxDy = Dy(stx);
+    float dStyDx = Dx(sty), dStyDy = Dy(sty);
+
+    float W0 = pow(max(w0, 0.0), 7.0);
+    float W1 = pow(max(w1, 0.0), 7.0);
+    float W2 = pow(max(w2, 0.0), 7.0);
+    float sm = W0 + W1 + W2;
+    if (sm > 0.0) { W0 /= sm; W1 /= sm; W2 /= sm; }
+
+    color result = color(0);
+    if (colorMap != "") {
+        color c1 = vmt_smpD(colorMap, u1x, u1y, ca1, sa1, dStxDx, dStxDy, dStyDx, dStyDy);
+        color c2 = vmt_smpD(colorMap, u2x, u2y, ca2, sa2, dStxDx, dStxDy, dStyDx, dStyDy);
+        color c3 = vmt_smpD(colorMap, u3x, u3y, ca3, sa3, dStxDx, dStxDy, dStyDx, dStyDy);
+        if (srgb != 0) { c1 = vmt_s2l(c1); c2 = vmt_s2l(c2); c3 = vmt_s2l(c3); }
+        result = W0 * c1 + W1 * c2 + W2 * c3;
+    }
+    outColor = result;
+}

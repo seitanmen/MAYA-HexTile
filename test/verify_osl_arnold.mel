@@ -1,0 +1,57 @@
+// verify_osl_arnold.mel
+// 翻訳プラグインを作る前に、OSL(vmtHexTile) を aiOslShader 経由で Arnold 描画して
+// 見た目(六角タイル・点線消去・色)を先行確認する。
+// 使い方: 下の $albedo を実画像パスに変えて、Script Editor(MEL) で全選択実行。
+// その後 Arnold でレンダリング。
+
+string $albedo = "L:/Megascans/Downloaded/surface/rock_cliffs_tdwlcc1l/tdwlcc1l_8K_Albedo.png";
+// 単一出力版（aiOslShader で扱いやすい）。複数出力本番版は vmtHexTile.osl。
+string $oslPath = "C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/osl/vmtHexTileOne.osl";
+
+if (!`pluginInfo -q -loaded mtoa`) loadPlugin "mtoa";
+
+// --- OSL ソースを読み込む ---
+int $fid = `fopen $oslPath "r"`;
+string $code = "";
+string $line = `fgetline $fid`;
+while (size($line) > 0) { $code += $line; $line = `fgetline $fid`; }
+fclose $fid;
+if (size($code) < 100) { error("OSL 読み込み失敗: " + $oslPath); }
+
+// --- aiOslShader に流し込む ---
+string $osl = `shadingNode -asShader aiOslShader`;
+setAttr -type "string" ($osl + ".code") $code;
+// 属性再構築を促す
+catch(`dgdirty -a $osl`);
+refreshEditorTemplates;
+
+// 動的属性を表示（実際の名前確認用）
+print("\n==== " + $osl + " のダイナミック属性 ====\n");
+string $uda[] = `listAttr -ud $osl`;
+for ($a in $uda) print("  " + $a + "\n");
+
+// --- aiStandardSurface + 平面 ---
+string $surf = `shadingNode -asShader aiStandardSurface`;
+string $sg = `sets -renderable true -noSurfaceShader true -empty -name vmtOslSG`;
+connectAttr -f ($surf + ".outColor") ($sg + ".surfaceShader");
+string $pl[] = `polyPlane -w 10 -h 10 -sx 1 -sy 1`;
+select -r $pl[0]; sets -e -forceElement $sg;
+
+// --- パラメータ設定＆接続（名前は環境差があるので catch で試行）---
+proc trySetStr(string $n, string $v){ if(`objExists $n`) catch(`setAttr -type "string" $n $v`); }
+proc trySetF(string $n, float $v){ if(`objExists $n`) catch(`setAttr $n $v`); }
+
+trySetStr ($osl + ".colorMap") $albedo;
+trySetF   ($osl + ".srgb") 1;
+trySetF   ($osl + ".tileScale") 4.0;
+trySetF   ($osl + ".rotStrength") 0.5;
+
+// outColor → baseColor（単一出力）
+int $connected = 0;
+if (`objExists ($osl + ".outColor")`) {
+    if (catch(`connectAttr -f ($osl + ".outColor") ($surf + ".baseColor")`) == 0) $connected = 1;
+}
+if (!$connected)
+    warning("outColor を自動接続できませんでした。上の属性一覧から出力属性を探し、手動で aiStandardSurface.baseColor に接続してください。");
+else
+    print("\noutColor -> baseColor 接続OK。Arnold でレンダリングしてください。\n");
