@@ -73,10 +73,20 @@ color vmt_s2l(color c)
         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
 }
 
-// V 反転込みのテクスチャサンプル（Maya UV と OSL t 原点差の吸収）
-color vmt_smp(string fn, float sx, float sy)
+// 明示的フットプリント付きサンプル（境界の点線=ミップ不連続を回避）。
+//   タイル中心/ハッシュは定数なので、回転後 UV の screen 微分 =
+//   元 UV(st) の screen 微分をタイル回転(ca,sa)したもの（滑らか・境界ジャンプ無し）。
+//   t = 1 - frac(v) のため dt = -dv。
+color vmt_smpD(string fn, float ux, float uy, float ca, float sa,
+               float dStxDx, float dStxDy, float dStyDx, float dStyDy)
 {
-    return (color) texture(fn, vmtfrac(sx), 1.0 - vmtfrac(sy), "wrap", "periodic");
+    float duDx = ca * dStxDx - sa * dStyDx;
+    float duDy = ca * dStxDy - sa * dStyDy;
+    float dvDx = sa * dStxDx + ca * dStyDx;
+    float dvDy = sa * dStxDy + ca * dStyDy;
+    return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+        "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+        "wrap", "periodic");
 }
 
 shader vmtHexTile
@@ -122,14 +132,24 @@ shader vmtHexTile
     vmt_tuv(stx, sty, v2x, v2y, rotStrength, u2x, u2y);
     vmt_tuv(stx, sty, v3x, v3y, rotStrength, u3x, u3y);
 
+    // 各タイルの回転（サンプルのフットプリント回転と normal の整合に使用）
+    float ca1, sa1, ca2, sa2, ca3, sa3;
+    vmt_rot(v1x, v1y, rotStrength, ca1, sa1);
+    vmt_rot(v2x, v2y, rotStrength, ca2, sa2);
+    vmt_rot(v3x, v3y, rotStrength, ca3, sa3);
+    // 元 UV(st) の screen 微分（滑らか）。タイル境界でジャンプしない。
+    float dStxDx = Dx(stx), dStxDy = Dy(stx);
+    float dStyDx = Dx(sty), dStyDy = Dy(sty);
+
     // ---- ブレンド重み W（height 駆動 or grid^7）----
     float W0, W1, W2;
     float h1 = 0, h2 = 0, h3 = 0;
     int useHeight = (heightMap != "");
     if (useHeight) {
-        h1 = (float) texture(heightMap, vmtfrac(u1x), 1.0 - vmtfrac(u1y), "wrap", "periodic");
-        h2 = (float) texture(heightMap, vmtfrac(u2x), 1.0 - vmtfrac(u2y), "wrap", "periodic");
-        h3 = (float) texture(heightMap, vmtfrac(u3x), 1.0 - vmtfrac(u3y), "wrap", "periodic");
+        color hc1 = vmt_smpD(heightMap, u1x, u1y, ca1, sa1, dStxDx, dStxDy, dStyDx, dStyDy);
+        color hc2 = vmt_smpD(heightMap, u2x, u2y, ca2, sa2, dStxDx, dStxDy, dStyDx, dStyDy);
+        color hc3 = vmt_smpD(heightMap, u3x, u3y, ca3, sa3, dStxDx, dStxDy, dStyDx, dStyDy);
+        h1 = hc1[0]; h2 = hc2[0]; h3 = hc3[0];
         float r0 = w0 + heightWeight * h1;
         float r1 = w1 + heightWeight * h2;
         float r2 = w2 + heightWeight * h3;
@@ -159,9 +179,9 @@ shader vmtHexTile
     color  oc[8]  = { 0, 0, 0, 0, 0, 0, 0, 0 };
     for (int i = 0; i < 8; i = i + 1) {
         if (cm[i] != "") {
-            color c1 = vmt_smp(cm[i], u1x, u1y);
-            color c2 = vmt_smp(cm[i], u2x, u2y);
-            color c3 = vmt_smp(cm[i], u3x, u3y);
+            color c1 = vmt_smpD(cm[i], u1x, u1y, ca1, sa1, dStxDx, dStxDy, dStyDx, dStyDy);
+            color c2 = vmt_smpD(cm[i], u2x, u2y, ca2, sa2, dStxDx, dStxDy, dStyDx, dStyDy);
+            color c3 = vmt_smpD(cm[i], u3x, u3y, ca3, sa3, dStxDx, dStxDy, dStyDx, dStyDy);
             if (sg[i] != 0) { c1 = vmt_s2l(c1); c2 = vmt_s2l(c2); c3 = vmt_s2l(c3); }
             oc[i] = W0 * c1 + W1 * c2 + W2 * c3;
         }
@@ -175,20 +195,16 @@ shader vmtHexTile
     // ---- normal（derivative 空間ブレンド）----
     if (normalMap != "") {
         float fy = (normalFlipY != 0) ? -1.0 : 1.0;
-        color n1c = vmt_smp(normalMap, u1x, u1y);
-        color n2c = vmt_smp(normalMap, u2x, u2y);
-        color n3c = vmt_smp(normalMap, u3x, u3y);
+        color n1c = vmt_smpD(normalMap, u1x, u1y, ca1, sa1, dStxDx, dStxDy, dStyDx, dStyDy);
+        color n2c = vmt_smpD(normalMap, u2x, u2y, ca2, sa2, dStxDx, dStxDy, dStyDx, dStyDy);
+        color n3c = vmt_smpD(normalMap, u3x, u3y, ca3, sa3, dStxDx, dStxDy, dStyDx, dStyDy);
         vector N1 = vector(n1c[0] * 2 - 1, (n1c[1] * 2 - 1) * fy, n1c[2] * 2 - 1);
         vector N2 = vector(n2c[0] * 2 - 1, (n2c[1] * 2 - 1) * fy, n2c[2] * 2 - 1);
         vector N3 = vector(n3c[0] * 2 - 1, (n3c[1] * 2 - 1) * fy, n3c[2] * 2 - 1);
-        // 各タイル回転に合わせて N.xy を回転
-        float c1a, s1a, c2a, s2a, c3a, s3a;
-        vmt_rot(v1x, v1y, rotStrength, c1a, s1a);
-        vmt_rot(v2x, v2y, rotStrength, c2a, s2a);
-        vmt_rot(v3x, v3y, rotStrength, c3a, s3a);
-        N1 = vector(c1a * N1[0] - s1a * N1[1], s1a * N1[0] + c1a * N1[1], N1[2]);
-        N2 = vector(c2a * N2[0] - s2a * N2[1], s2a * N2[0] + c2a * N2[1], N2[2]);
-        N3 = vector(c3a * N3[0] - s3a * N3[1], s3a * N3[0] + c3a * N3[1], N3[2]);
+        // 各タイル回転に合わせて N.xy を回転（事前算出の ca/sa を再利用）
+        N1 = vector(ca1 * N1[0] - sa1 * N1[1], sa1 * N1[0] + ca1 * N1[1], N1[2]);
+        N2 = vector(ca2 * N2[0] - sa2 * N2[1], sa2 * N2[0] + ca2 * N2[1], N2[2]);
+        N3 = vector(ca3 * N3[0] - sa3 * N3[1], sa3 * N3[0] + ca3 * N3[1], N3[2]);
         float g1x = -N1[0] / max(N1[2], 0.001), g1y = -N1[1] / max(N1[2], 0.001);
         float g2x = -N2[0] / max(N2[2], 0.001), g2y = -N2[1] / max(N2[2], 0.001);
         float g3x = -N3[0] / max(N3[2], 0.001), g3y = -N3[1] / max(N3[2], 0.001);
