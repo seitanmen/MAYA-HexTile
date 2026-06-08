@@ -1,0 +1,2274 @@
+OpenShadingLanguage 1.00
+# Compiled by oslc 1.13.3.0dev
+# options: -o vmtHexTile.oso
+shader vmtHexTile	%meta{string,help,"VMT stochastic hex tiling (Arnold/Redshift)"} 
+param	float	uvU	0		%read{2,2} %write{0,0} %derivs %initexpr
+param	float	uvV	0		%read{3,3} %write{1,1} %derivs %initexpr
+param	float	tileScale	2		%read{2,3} %write{2147483647,-1} %derivs
+param	float	rotStrength	0.5		%read{62,304} %write{2147483647,-1} %derivs
+param	float	tileBlend	0.5		%read{449,452} %write{2147483647,-1}
+param	string	colorMap0	""		%read{499,499} %write{2147483647,-1}
+param	int	srgb0	1		%read{507,507} %write{2147483647,-1}
+param	string	colorMap1	""		%read{500,500} %write{2147483647,-1}
+param	int	srgb1	1		%read{508,508} %write{2147483647,-1}
+param	string	colorMap2	""		%read{501,501} %write{2147483647,-1}
+param	int	srgb2	1		%read{509,509} %write{2147483647,-1}
+param	string	colorMap3	""		%read{502,502} %write{2147483647,-1}
+param	int	srgb3	1		%read{510,510} %write{2147483647,-1}
+param	string	colorMap4	""		%read{503,503} %write{2147483647,-1}
+param	int	srgb4	1		%read{511,511} %write{2147483647,-1}
+param	string	colorMap5	""		%read{504,504} %write{2147483647,-1}
+param	int	srgb5	1		%read{512,512} %write{2147483647,-1}
+param	string	colorMap6	""		%read{505,505} %write{2147483647,-1}
+param	int	srgb6	1		%read{513,513} %write{2147483647,-1}
+param	string	colorMap7	""		%read{506,506} %write{2147483647,-1}
+param	int	srgb7	1		%read{514,514} %write{2147483647,-1}
+param	string	heightMap	""		%read{314,384} %write{2147483647,-1}
+param	float	heightWeight	1		%read{388,392} %write{2147483647,-1}
+param	float	heightDelta	0.200000003		%read{394,394} %write{2147483647,-1}
+param	string	normalMap	""		%read{725,799} %write{2147483647,-1}
+param	int	normalFlipY	0		%read{727,727} %write{2147483647,-1}
+oparam	color	outColor0	0 0 0		%read{2147483647,-1} %write{710,710}
+oparam	color	outColor1	0 0 0		%read{2147483647,-1} %write{711,711}
+oparam	color	outColor2	0 0 0		%read{2147483647,-1} %write{712,712}
+oparam	color	outColor3	0 0 0		%read{2147483647,-1} %write{713,713}
+oparam	color	outColor4	0 0 0		%read{2147483647,-1} %write{714,714}
+oparam	color	outColor5	0 0 0		%read{2147483647,-1} %write{715,715}
+oparam	color	outColor6	0 0 0		%read{2147483647,-1} %write{716,716}
+oparam	color	outColor7	0 0 0		%read{2147483647,-1} %write{717,717}
+oparam	float	outHeight	0		%read{2147483647,-1} %write{723,724}
+oparam	normal	outNormal	0 0 1		%read{2147483647,-1} %write{912,912}
+global	float	u	%read{0,0} %write{2147483647,-1} %derivs
+global	float	v	%read{1,1} %write{2147483647,-1} %derivs
+local	float	___363_sc	%read{6,7} %write{5,5} %derivs
+local	float	___363_ax	%read{9,9} %write{6,6} %derivs
+local	float	___363_ay	%read{8,10} %write{7,7} %derivs
+local	float	___363_skx	%read{11,13} %write{9,9} %derivs
+local	float	___363_sky	%read{12,14} %write{10,10} %derivs
+local	float	___363_bx	%read{13,34} %write{11,11} %derivs
+local	float	___363_by	%read{14,36} %write{12,12} %derivs
+local	float	___363_fx	%read{15,27} %write{13,13}
+local	float	___363_fy	%read{16,25} %write{14,14}
+local	float	___363_fz	%read{17,23} %write{16,16}
+local	float	___363_g	%read{21,36} %write{19,20} %derivs
+local	float	___363_s2	%read{24,27} %write{22,22}
+local	int	___364_ix	%read{72,212} %write{68,208} %derivs
+local	int	___364_iy	%read{73,213} %write{71,211} %derivs
+local	int	___364_h	%read{75,230} %write{74,225} %derivs
+local	float	___365_id	%read{42,184} %write{39,179} %derivs
+local	float	___366_PI	%read{53,301} %write{46,288} %derivs
+local	float	___366_TAU	%read{55,303} %write{47,289} %derivs
+local	float	___366_a	%read{55,306} %write{53,304} %derivs
+local	float	___367_cx	%read{95,240} %write{42,182} %derivs
+local	float	___367_cy	%read{96,245} %write{44,184} %derivs
+local	float	___367_ca	%read{97,243} %write{63,203} %derivs
+local	float	___367_sa	%read{98,242} %write{64,204} %derivs
+local	float	___367_hx	%read{101,241} %write{89,229} %derivs
+local	float	___367_hy	%read{106,246} %write{94,234} %derivs
+local	float	___367_dx	%read{97,242} %write{95,235} %derivs
+local	float	___367_dy	%read{98,243} %write{96,236} %derivs
+local	float	___370_k	%read{460,488} %write{455,455}
+local	float	___370_g0	%read{492,496} %write{461,466}
+local	float	___370_g1	%read{492,497} %write{473,478}
+local	float	___370_g2	%read{493,498} %write{485,490}
+local	float	___370_s	%read{494,498} %write{493,493}
+local	float	___372_duDx	%read{338,799} %write{319,780}
+local	float	___372_duDy	%read{338,799} %write{322,783}
+local	float	___372_dvDx	%read{336,797} %write{325,786}
+local	float	___372_dvDy	%read{337,798} %write{328,789}
+local	float	stx	%read{6,308} %write{2,2} %derivs
+local	float	sty	%read{7,310} %write{3,3} %derivs
+local	float	w0	%read{389,435} %write{24,24}
+local	float	w1	%read{391,437} %write{26,26}
+local	float	w2	%read{393,439} %write{28,28}
+local	float	v1x	%read{41,252} %write{29,29} %derivs
+local	float	v1y	%read{40,252} %write{30,30} %derivs
+local	float	v2x	%read{111,272} %write{31,31} %derivs
+local	float	v2y	%read{110,272} %write{33,33} %derivs
+local	float	v3x	%read{181,292} %write{35,35} %derivs
+local	float	v3y	%read{180,292} %write{36,36} %derivs
+local	float	u1x	%read{330,746} %write{101,101} %derivs
+local	float	u1y	%read{333,749} %write{106,106} %derivs
+local	float	u2x	%read{353,769} %write{171,171} %derivs
+local	float	u2y	%read{356,772} %write{176,176} %derivs
+local	float	u3x	%read{376,792} %write{241,241} %derivs
+local	float	u3y	%read{379,795} %write{246,246} %derivs
+local	float	ca1	%read{317,841} %write{265,265}
+local	float	sa1	%read{318,839} %write{266,266}
+local	float	ca2	%read{340,853} %write{285,285}
+local	float	sa2	%read{341,851} %write{286,286}
+local	float	ca3	%read{363,865} %write{305,305}
+local	float	sa3	%read{364,863} %write{306,306}
+local	float	dStxDx	%read{317,784} %write{307,307}
+local	float	dStxDy	%read{320,787} %write{308,308}
+local	float	dStyDx	%read{318,785} %write{309,309}
+local	float	dStyDy	%read{321,788} %write{310,310}
+local	float	W0	%read{441,904} %write{432,496}
+local	float	W1	%read{441,905} %write{433,497}
+local	float	W2	%read{442,907} %write{434,498}
+local	float	h1	%read{388,719} %write{311,385}
+local	float	h2	%read{390,720} %write{312,386}
+local	float	h3	%read{392,722} %write{313,387}
+local	int	useHeight	%read{315,718} %write{314,314}
+local	color	___373_hc1	%read{385,385} %write{338,338}
+local	color	___373_hc2	%read{386,386} %write{361,361}
+local	color	___373_hc3	%read{387,387} %write{384,384}
+local	float	___373_r0	%read{396,420} %write{389,389}
+local	float	___373_r1	%read{396,426} %write{391,391}
+local	float	___373_r2	%read{402,426} %write{393,393}
+local	float	___373_dl	%read{397,428} %write{395,395}
+local	float	___373_s01	%read{432,432} %write{401,401}
+local	float	___373_s02	%read{432,432} %write{407,407}
+local	float	___373_s10	%read{433,433} %write{413,413}
+local	float	___373_s12	%read{433,433} %write{419,419}
+local	float	___373_s20	%read{434,434} %write{425,425}
+local	float	___373_s21	%read{434,434} %write{431,431}
+local	float	sm	%read{443,447} %write{442,442}
+local	string[8]	cm	%read{533,709} %write{499,506}
+local	int[8]	sg	%read{533,709} %write{507,514}
+local	color[8]	oc	%read{710,717} %write{516,709}
+local	int	___376_i	%read{533,709} %write{532,709}
+local	color	___378_c1	%read{533,709} %write{533,709}
+local	color	___378_c2	%read{533,709} %write{533,709}
+local	color	___378_c3	%read{533,709} %write{533,709}
+local	float	___380_fy	%read{806,828} %write{729,730}
+local	color	___380_n1c	%read{800,807} %write{753,753}
+local	color	___380_n2c	%read{811,818} %write{776,776}
+local	color	___380_n3c	%read{822,829} %write{799,799}
+local	vector	___380_N1	%read{833,876} %write{810,844}
+local	vector	___380_N2	%read{845,886} %write{821,856}
+local	vector	___380_N3	%read{857,896} %write{832,868}
+local	float	___380_g1x	%read{899,899} %write{873,873}
+local	float	___380_g1y	%read{904,904} %write{878,878}
+local	float	___380_g2x	%read{900,900} %write{883,883}
+local	float	___380_g2y	%read{905,905} %write{888,888}
+local	float	___380_g3x	%read{902,902} %write{893,893}
+local	float	___380_g3y	%read{907,907} %write{898,898}
+local	float	___380_Gx	%read{909,909} %write{903,903}
+local	float	___380_Gy	%read{910,910} %write{908,908}
+const	string	$const1	"vmt_tri"		%read{4,4} %write{2147483647,-1}
+const	float	$const2	3.46410155		%read{5,5} %write{2147483647,-1}
+const	float	$const3	0.577350259		%read{8,8} %write{2147483647,-1}
+temp	float	$tmp1	%read{9,9} %write{8,8} %derivs
+const	float	$const4	1.15470052		%read{10,10} %write{2147483647,-1}
+const	float	$const5	1		%read{15,911} %write{2147483647,-1}
+temp	float	$tmp2	%read{16,16} %write{15,15}
+const	float	$const6	0		%read{17,724} %write{2147483647,-1}
+temp	int	$tmp3	%read{18,18} %write{17,17}
+const	float	$const7	2		%read{21,830} %write{2147483647,-1}
+temp	float	$tmp4	%read{22,22} %write{21,21}
+temp	float	$tmp5	%read{24,24} %write{23,23}
+temp	float	$tmp6	%read{26,26} %write{25,25}
+temp	float	$tmp7	%read{28,28} %write{27,27}
+temp	float	$tmp8	%read{33,33} %write{32,32} %derivs
+temp	float	$tmp9	%read{35,35} %write{34,34} %derivs
+const	string	$const8	"vmt_tuv"		%read{37,177} %write{2147483647,-1}
+const	string	$const9	"vmt_cen"		%read{38,178} %write{2147483647,-1}
+const	float	$const10	0.288675129		%read{39,179} %write{2147483647,-1}
+const	float	$const11	0.5		%read{40,489} %write{2147483647,-1}
+temp	float	$tmp10	%read{41,41} %write{40,40} %derivs
+temp	float	$tmp11	%read{42,42} %write{41,41} %derivs
+const	float	$const12	0.866025388		%read{43,183} %write{2147483647,-1}
+temp	float	$tmp12	%read{44,44} %write{43,43} %derivs
+const	string	$const13	"vmt_rot"		%read{45,287} %write{2147483647,-1}
+const	float	$const14	3.14159274		%read{46,288} %write{2147483647,-1}
+const	float	$const15	6.28318548		%read{47,289} %write{2147483647,-1}
+temp	float	$tmp13	%read{52,52} %write{49,49} %derivs
+temp	float	$tmp14	%read{49,49} %write{48,48} %derivs
+temp	float	$tmp15	%read{52,52} %write{51,51} %derivs
+temp	float	$tmp16	%read{51,51} %write{50,50} %derivs
+temp	float	$tmp17	%read{53,53} %write{52,52} %derivs
+const	string	$const16	"mod"		%read{54,296} %write{2147483647,-1}
+temp	float	$tmp18	%read{57,57} %write{56,56} %derivs
+temp	float	$tmp19	%read{56,56} %write{55,55} %derivs
+temp	float	$tmp20	%read{58,58} %write{57,57} %derivs
+temp	int	$tmp21	%read{60,60} %write{59,59}
+const	string	$const17	"vmt_hash2"		%read{65,205} %write{2147483647,-1}
+temp	float	$tmp22	%read{68,68} %write{67,67} %derivs
+temp	float	$tmp23	%read{67,67} %write{66,66} %derivs
+temp	float	$tmp24	%read{71,71} %write{70,70} %derivs
+temp	float	$tmp25	%read{70,70} %write{69,69} %derivs
+const	int	$const18	-1640531535		%read{72,212} %write{2147483647,-1}
+temp	int	$tmp26	%read{74,74} %write{72,72} %derivs
+const	int	$const19	-2048144777		%read{73,213} %write{2147483647,-1}
+temp	int	$tmp27	%read{74,74} %write{73,73} %derivs
+const	int	$const20	16		%read{75,230} %write{2147483647,-1}
+temp	int	$tmp28	%read{76,76} %write{75,75} %derivs
+const	int	$const21	65535		%read{76,231} %write{2147483647,-1}
+temp	int	$tmp29	%read{77,77} %write{76,76} %derivs
+const	int	$const22	-2048144789		%read{78,218} %write{2147483647,-1}
+const	int	$const23	13		%read{79,219} %write{2147483647,-1}
+temp	int	$tmp30	%read{80,80} %write{79,79} %derivs
+const	int	$const24	524287		%read{80,220} %write{2147483647,-1}
+temp	int	$tmp31	%read{81,81} %write{80,80} %derivs
+const	int	$const25	-1028477387		%read{82,222} %write{2147483647,-1}
+temp	int	$tmp32	%read{84,84} %write{83,83} %derivs
+temp	int	$tmp33	%read{85,85} %write{84,84} %derivs
+temp	float	$tmp34	%read{89,89} %write{88,88} %derivs
+temp	int	$tmp35	%read{87,87} %write{86,86} %derivs
+temp	float	$tmp36	%read{88,88} %write{87,87} %derivs
+const	float	$const26	65536		%read{89,234} %write{2147483647,-1}
+temp	float	$tmp37	%read{94,94} %write{93,93} %derivs
+temp	int	$tmp38	%read{91,91} %write{90,90} %derivs
+temp	int	$tmp39	%read{92,92} %write{91,91} %derivs
+temp	float	$tmp40	%read{93,93} %write{92,92} %derivs
+temp	float	$tmp41	%read{99,99} %write{97,97} %derivs
+temp	float	$tmp42	%read{99,99} %write{98,98} %derivs
+temp	float	$tmp43	%read{100,100} %write{99,99} %derivs
+temp	float	$tmp44	%read{101,101} %write{100,100} %derivs
+temp	float	$tmp45	%read{104,104} %write{102,102} %derivs
+temp	float	$tmp46	%read{104,104} %write{103,103} %derivs
+temp	float	$tmp47	%read{105,105} %write{104,104} %derivs
+temp	float	$tmp48	%read{106,106} %write{105,105} %derivs
+temp	float	$tmp49	%read{111,111} %write{110,110} %derivs
+temp	float	$tmp50	%read{112,112} %write{111,111} %derivs
+temp	float	$tmp51	%read{114,114} %write{113,113} %derivs
+temp	float	$tmp52	%read{122,122} %write{119,119} %derivs
+temp	float	$tmp53	%read{119,119} %write{118,118} %derivs
+temp	float	$tmp54	%read{122,122} %write{121,121} %derivs
+temp	float	$tmp55	%read{121,121} %write{120,120} %derivs
+temp	float	$tmp56	%read{123,123} %write{122,122} %derivs
+temp	float	$tmp57	%read{127,127} %write{126,126} %derivs
+temp	float	$tmp58	%read{126,126} %write{125,125} %derivs
+temp	float	$tmp59	%read{128,128} %write{127,127} %derivs
+temp	int	$tmp60	%read{130,130} %write{129,129}
+temp	float	$tmp61	%read{138,138} %write{137,137} %derivs
+temp	float	$tmp62	%read{137,137} %write{136,136} %derivs
+temp	float	$tmp63	%read{141,141} %write{140,140} %derivs
+temp	float	$tmp64	%read{140,140} %write{139,139} %derivs
+temp	int	$tmp65	%read{144,144} %write{142,142} %derivs
+temp	int	$tmp66	%read{144,144} %write{143,143} %derivs
+temp	int	$tmp67	%read{146,146} %write{145,145} %derivs
+temp	int	$tmp68	%read{147,147} %write{146,146} %derivs
+temp	int	$tmp69	%read{150,150} %write{149,149} %derivs
+temp	int	$tmp70	%read{151,151} %write{150,150} %derivs
+temp	int	$tmp71	%read{154,154} %write{153,153} %derivs
+temp	int	$tmp72	%read{155,155} %write{154,154} %derivs
+temp	float	$tmp73	%read{159,159} %write{158,158} %derivs
+temp	int	$tmp74	%read{157,157} %write{156,156} %derivs
+temp	float	$tmp75	%read{158,158} %write{157,157} %derivs
+temp	float	$tmp76	%read{164,164} %write{163,163} %derivs
+temp	int	$tmp77	%read{161,161} %write{160,160} %derivs
+temp	int	$tmp78	%read{162,162} %write{161,161} %derivs
+temp	float	$tmp79	%read{163,163} %write{162,162} %derivs
+temp	float	$tmp80	%read{169,169} %write{167,167} %derivs
+temp	float	$tmp81	%read{169,169} %write{168,168} %derivs
+temp	float	$tmp82	%read{170,170} %write{169,169} %derivs
+temp	float	$tmp83	%read{171,171} %write{170,170} %derivs
+temp	float	$tmp84	%read{174,174} %write{172,172} %derivs
+temp	float	$tmp85	%read{174,174} %write{173,173} %derivs
+temp	float	$tmp86	%read{175,175} %write{174,174} %derivs
+temp	float	$tmp87	%read{176,176} %write{175,175} %derivs
+temp	float	$tmp88	%read{181,181} %write{180,180} %derivs
+temp	float	$tmp89	%read{182,182} %write{181,181} %derivs
+temp	float	$tmp90	%read{184,184} %write{183,183} %derivs
+temp	float	$tmp91	%read{192,192} %write{189,189} %derivs
+temp	float	$tmp92	%read{189,189} %write{188,188} %derivs
+temp	float	$tmp93	%read{192,192} %write{191,191} %derivs
+temp	float	$tmp94	%read{191,191} %write{190,190} %derivs
+temp	float	$tmp95	%read{193,193} %write{192,192} %derivs
+temp	float	$tmp96	%read{197,197} %write{196,196} %derivs
+temp	float	$tmp97	%read{196,196} %write{195,195} %derivs
+temp	float	$tmp98	%read{198,198} %write{197,197} %derivs
+temp	int	$tmp99	%read{200,200} %write{199,199}
+temp	float	$tmp100	%read{208,208} %write{207,207} %derivs
+temp	float	$tmp101	%read{207,207} %write{206,206} %derivs
+temp	float	$tmp102	%read{211,211} %write{210,210} %derivs
+temp	float	$tmp103	%read{210,210} %write{209,209} %derivs
+temp	int	$tmp104	%read{214,214} %write{212,212} %derivs
+temp	int	$tmp105	%read{214,214} %write{213,213} %derivs
+temp	int	$tmp106	%read{216,216} %write{215,215} %derivs
+temp	int	$tmp107	%read{217,217} %write{216,216} %derivs
+temp	int	$tmp108	%read{220,220} %write{219,219} %derivs
+temp	int	$tmp109	%read{221,221} %write{220,220} %derivs
+temp	int	$tmp110	%read{224,224} %write{223,223} %derivs
+temp	int	$tmp111	%read{225,225} %write{224,224} %derivs
+temp	float	$tmp112	%read{229,229} %write{228,228} %derivs
+temp	int	$tmp113	%read{227,227} %write{226,226} %derivs
+temp	float	$tmp114	%read{228,228} %write{227,227} %derivs
+temp	float	$tmp115	%read{234,234} %write{233,233} %derivs
+temp	int	$tmp116	%read{231,231} %write{230,230} %derivs
+temp	int	$tmp117	%read{232,232} %write{231,231} %derivs
+temp	float	$tmp118	%read{233,233} %write{232,232} %derivs
+temp	float	$tmp119	%read{239,239} %write{237,237} %derivs
+temp	float	$tmp120	%read{239,239} %write{238,238} %derivs
+temp	float	$tmp121	%read{240,240} %write{239,239} %derivs
+temp	float	$tmp122	%read{241,241} %write{240,240} %derivs
+temp	float	$tmp123	%read{244,244} %write{242,242} %derivs
+temp	float	$tmp124	%read{244,244} %write{243,243} %derivs
+temp	float	$tmp125	%read{245,245} %write{244,244} %derivs
+temp	float	$tmp126	%read{246,246} %write{245,245} %derivs
+temp	float	$tmp127	%read{254,254} %write{251,251} %derivs
+temp	float	$tmp128	%read{251,251} %write{250,250} %derivs
+temp	float	$tmp129	%read{254,254} %write{253,253} %derivs
+temp	float	$tmp130	%read{253,253} %write{252,252} %derivs
+temp	float	$tmp131	%read{255,255} %write{254,254} %derivs
+temp	float	$tmp132	%read{259,259} %write{258,258} %derivs
+temp	float	$tmp133	%read{258,258} %write{257,257} %derivs
+temp	float	$tmp134	%read{260,260} %write{259,259} %derivs
+temp	int	$tmp135	%read{262,262} %write{261,261}
+temp	float	$tmp136	%read{274,274} %write{271,271} %derivs
+temp	float	$tmp137	%read{271,271} %write{270,270} %derivs
+temp	float	$tmp138	%read{274,274} %write{273,273} %derivs
+temp	float	$tmp139	%read{273,273} %write{272,272} %derivs
+temp	float	$tmp140	%read{275,275} %write{274,274} %derivs
+temp	float	$tmp141	%read{279,279} %write{278,278} %derivs
+temp	float	$tmp142	%read{278,278} %write{277,277} %derivs
+temp	float	$tmp143	%read{280,280} %write{279,279} %derivs
+temp	int	$tmp144	%read{282,282} %write{281,281}
+temp	float	$tmp145	%read{294,294} %write{291,291} %derivs
+temp	float	$tmp146	%read{291,291} %write{290,290} %derivs
+temp	float	$tmp147	%read{294,294} %write{293,293} %derivs
+temp	float	$tmp148	%read{293,293} %write{292,292} %derivs
+temp	float	$tmp149	%read{295,295} %write{294,294} %derivs
+temp	float	$tmp150	%read{299,299} %write{298,298} %derivs
+temp	float	$tmp151	%read{298,298} %write{297,297} %derivs
+temp	float	$tmp152	%read{300,300} %write{299,299} %derivs
+temp	int	$tmp153	%read{302,302} %write{301,301}
+const	int	$const27	0		%read{311,889} %write{2147483647,-1}
+const	string	$const28	""		%read{314,725} %write{2147483647,-1}
+const	string	$const29	"vmt_smpD"		%read{316,777} %write{2147483647,-1}
+temp	float	$tmp154	%read{319,319} %write{317,317}
+temp	float	$tmp155	%read{319,319} %write{318,318}
+temp	float	$tmp156	%read{322,322} %write{320,320}
+temp	float	$tmp157	%read{322,322} %write{321,321}
+temp	float	$tmp158	%read{325,325} %write{323,323}
+temp	float	$tmp159	%read{325,325} %write{324,324}
+temp	float	$tmp160	%read{328,328} %write{326,326}
+temp	float	$tmp161	%read{328,328} %write{327,327}
+temp	float	$tmp162	%read{338,338} %write{331,331} %derivs
+const	string	$const30	"vmtfrac"		%read{329,793} %write{2147483647,-1}
+temp	float	$tmp163	%read{331,331} %write{330,330} %derivs
+temp	float	$tmp164	%read{335,335} %write{334,334} %derivs
+temp	float	$tmp165	%read{334,334} %write{333,333} %derivs
+temp	float	$tmp166	%read{338,338} %write{335,335} %derivs
+const	string	$const31	"dsdx"		%read{338,799} %write{2147483647,-1}
+const	string	$const32	"dsdy"		%read{338,799} %write{2147483647,-1}
+const	string	$const33	"dtdx"		%read{338,799} %write{2147483647,-1}
+temp	float	$tmp167	%read{338,338} %write{336,336}
+const	string	$const34	"dtdy"		%read{338,799} %write{2147483647,-1}
+temp	float	$tmp168	%read{338,338} %write{337,337}
+const	string	$const35	"wrap"		%read{338,799} %write{2147483647,-1}
+const	string	$const36	"periodic"		%read{338,799} %write{2147483647,-1}
+temp	float	$tmp169	%read{342,342} %write{340,340}
+temp	float	$tmp170	%read{342,342} %write{341,341}
+temp	float	$tmp171	%read{345,345} %write{343,343}
+temp	float	$tmp172	%read{345,345} %write{344,344}
+temp	float	$tmp173	%read{348,348} %write{346,346}
+temp	float	$tmp174	%read{348,348} %write{347,347}
+temp	float	$tmp175	%read{351,351} %write{349,349}
+temp	float	$tmp176	%read{351,351} %write{350,350}
+temp	float	$tmp177	%read{361,361} %write{354,354} %derivs
+temp	float	$tmp178	%read{354,354} %write{353,353} %derivs
+temp	float	$tmp179	%read{358,358} %write{357,357} %derivs
+temp	float	$tmp180	%read{357,357} %write{356,356} %derivs
+temp	float	$tmp181	%read{361,361} %write{358,358} %derivs
+temp	float	$tmp182	%read{361,361} %write{359,359}
+temp	float	$tmp183	%read{361,361} %write{360,360}
+temp	float	$tmp184	%read{365,365} %write{363,363}
+temp	float	$tmp185	%read{365,365} %write{364,364}
+temp	float	$tmp186	%read{368,368} %write{366,366}
+temp	float	$tmp187	%read{368,368} %write{367,367}
+temp	float	$tmp188	%read{371,371} %write{369,369}
+temp	float	$tmp189	%read{371,371} %write{370,370}
+temp	float	$tmp190	%read{374,374} %write{372,372}
+temp	float	$tmp191	%read{374,374} %write{373,373}
+temp	float	$tmp192	%read{384,384} %write{377,377} %derivs
+temp	float	$tmp193	%read{377,377} %write{376,376} %derivs
+temp	float	$tmp194	%read{381,381} %write{380,380} %derivs
+temp	float	$tmp195	%read{380,380} %write{379,379} %derivs
+temp	float	$tmp196	%read{384,384} %write{381,381} %derivs
+temp	float	$tmp197	%read{384,384} %write{382,382}
+temp	float	$tmp198	%read{384,384} %write{383,383}
+temp	float	$tmp199	%read{389,389} %write{388,388}
+temp	float	$tmp200	%read{391,391} %write{390,390}
+temp	float	$tmp201	%read{393,393} %write{392,392}
+const	float	$const37	0.707106769		%read{394,394} %write{2147483647,-1}
+temp	float	$tmp202	%read{395,395} %write{394,394}
+const	float	$const38	9.99999975e-05		%read{395,395} %write{2147483647,-1}
+temp	float	$tmp203	%read{397,397} %write{396,396}
+temp	float	$tmp204	%read{398,398} %write{397,397}
+temp	float	$tmp205	%read{400,400} %write{398,398}
+const	string	$const39	"clamp"		%read{399,429} %write{2147483647,-1}
+temp	float	$tmp206	%read{401,401} %write{400,400}
+temp	float	$tmp207	%read{403,403} %write{402,402}
+temp	float	$tmp208	%read{404,404} %write{403,403}
+temp	float	$tmp209	%read{406,406} %write{404,404}
+temp	float	$tmp210	%read{407,407} %write{406,406}
+temp	float	$tmp211	%read{409,409} %write{408,408}
+temp	float	$tmp212	%read{410,410} %write{409,409}
+temp	float	$tmp213	%read{412,412} %write{410,410}
+temp	float	$tmp214	%read{413,413} %write{412,412}
+temp	float	$tmp215	%read{415,415} %write{414,414}
+temp	float	$tmp216	%read{416,416} %write{415,415}
+temp	float	$tmp217	%read{418,418} %write{416,416}
+temp	float	$tmp218	%read{419,419} %write{418,418}
+temp	float	$tmp219	%read{421,421} %write{420,420}
+temp	float	$tmp220	%read{422,422} %write{421,421}
+temp	float	$tmp221	%read{424,424} %write{422,422}
+temp	float	$tmp222	%read{425,425} %write{424,424}
+temp	float	$tmp223	%read{427,427} %write{426,426}
+temp	float	$tmp224	%read{428,428} %write{427,427}
+temp	float	$tmp225	%read{430,430} %write{428,428}
+temp	float	$tmp226	%read{431,431} %write{430,430}
+temp	float	$tmp227	%read{436,436} %write{435,435}
+const	float	$const40	7		%read{436,440} %write{2147483647,-1}
+temp	float	$tmp228	%read{438,438} %write{437,437}
+temp	float	$tmp229	%read{440,440} %write{439,439}
+temp	float	$tmp230	%read{442,442} %write{441,441}
+temp	int	$tmp231	%read{444,444} %write{443,443}
+const	string	$const41	"vmt_bgain"		%read{448,448} %write{2147483647,-1}
+temp	int	$tmp232	%read{450,450} %write{449,449}
+temp	float	$tmp233	%read{455,455} %write{453,453}
+temp	float	$tmp234	%read{453,453} %write{452,452}
+temp	float	$tmp235	%read{455,455} %write{454,454}
+const	string	$const42	"vmt_gain"		%read{456,480} %write{2147483647,-1}
+temp	int	$tmp236	%read{458,458} %write{457,457}
+temp	float	$tmp237	%read{461,461} %write{460,460}
+temp	float	$tmp238	%read{460,460} %write{459,459}
+temp	float	$tmp239	%read{465,465} %write{464,464}
+temp	float	$tmp240	%read{463,463} %write{462,462}
+temp	float	$tmp241	%read{464,464} %write{463,463}
+temp	float	$tmp242	%read{466,466} %write{465,465}
+temp	int	$tmp243	%read{470,470} %write{469,469}
+temp	float	$tmp244	%read{473,473} %write{472,472}
+temp	float	$tmp245	%read{472,472} %write{471,471}
+temp	float	$tmp246	%read{477,477} %write{476,476}
+temp	float	$tmp247	%read{475,475} %write{474,474}
+temp	float	$tmp248	%read{476,476} %write{475,475}
+temp	float	$tmp249	%read{478,478} %write{477,477}
+temp	int	$tmp250	%read{482,482} %write{481,481}
+temp	float	$tmp251	%read{485,485} %write{484,484}
+temp	float	$tmp252	%read{484,484} %write{483,483}
+temp	float	$tmp253	%read{489,489} %write{488,488}
+temp	float	$tmp254	%read{487,487} %write{486,486}
+temp	float	$tmp255	%read{488,488} %write{487,487}
+temp	float	$tmp256	%read{490,490} %write{489,489}
+temp	float	$tmp257	%read{493,493} %write{492,492}
+temp	int	$tmp258	%read{495,495} %write{494,494}
+const	int	$const43	1		%read{500,894} %write{2147483647,-1}
+const	int	$const44	2		%read{501,896} %write{2147483647,-1}
+const	int	$const45	3		%read{502,713} %write{2147483647,-1}
+const	int	$const46	4		%read{503,714} %write{2147483647,-1}
+const	int	$const47	5		%read{504,715} %write{2147483647,-1}
+const	int	$const48	6		%read{505,716} %write{2147483647,-1}
+const	int	$const49	7		%read{506,717} %write{2147483647,-1}
+temp	color	$tmp259	%read{516,516} %write{515,515}
+temp	color	$tmp260	%read{518,518} %write{517,517}
+temp	color	$tmp261	%read{520,520} %write{519,519}
+temp	color	$tmp262	%read{522,522} %write{521,521}
+temp	color	$tmp263	%read{524,524} %write{523,523}
+temp	color	$tmp264	%read{526,526} %write{525,525}
+temp	color	$tmp265	%read{528,528} %write{527,527}
+temp	color	$tmp266	%read{530,530} %write{529,529}
+const	int	$const50	8		%read{533,533} %write{2147483647,-1}
+temp	int	$tmp267	%read{533,709} %write{533,709}
+temp	int	$tmp268	%read{531,709} %write{532,709}
+temp	string	$tmp269	%read{533,709} %write{533,709}
+temp	int	$tmp270	%read{533,709} %write{533,709}
+temp	string	$tmp271	%read{533,709} %write{533,709}
+temp	float	$tmp272	%read{533,709} %write{533,709}
+temp	float	$tmp273	%read{533,709} %write{533,709}
+temp	float	$tmp274	%read{533,709} %write{533,709}
+temp	float	$tmp275	%read{533,709} %write{533,709}
+temp	float	$tmp276	%read{533,709} %write{533,709}
+temp	float	$tmp277	%read{533,709} %write{533,709}
+temp	float	$tmp278	%read{533,709} %write{533,709}
+temp	float	$tmp279	%read{533,709} %write{533,709}
+temp	float	$tmp280	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp281	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp282	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp283	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp284	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp285	%read{533,709} %write{533,709}
+temp	float	$tmp286	%read{533,709} %write{533,709}
+temp	string	$tmp287	%read{533,709} %write{533,709}
+temp	float	$tmp288	%read{533,709} %write{533,709}
+temp	float	$tmp289	%read{533,709} %write{533,709}
+temp	float	$tmp290	%read{533,709} %write{533,709}
+temp	float	$tmp291	%read{533,709} %write{533,709}
+temp	float	$tmp292	%read{533,709} %write{533,709}
+temp	float	$tmp293	%read{533,709} %write{533,709}
+temp	float	$tmp294	%read{533,709} %write{533,709}
+temp	float	$tmp295	%read{533,709} %write{533,709}
+temp	float	$tmp296	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp297	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp298	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp299	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp300	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp301	%read{533,709} %write{533,709}
+temp	float	$tmp302	%read{533,709} %write{533,709}
+temp	string	$tmp303	%read{533,709} %write{533,709}
+temp	float	$tmp304	%read{533,709} %write{533,709}
+temp	float	$tmp305	%read{533,709} %write{533,709}
+temp	float	$tmp306	%read{533,709} %write{533,709}
+temp	float	$tmp307	%read{533,709} %write{533,709}
+temp	float	$tmp308	%read{533,709} %write{533,709}
+temp	float	$tmp309	%read{533,709} %write{533,709}
+temp	float	$tmp310	%read{533,709} %write{533,709}
+temp	float	$tmp311	%read{533,709} %write{533,709}
+temp	float	$tmp312	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp313	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp314	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp315	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp316	%read{533,709} %write{533,709} %derivs
+temp	float	$tmp317	%read{533,709} %write{533,709}
+temp	float	$tmp318	%read{533,709} %write{533,709}
+temp	int	$tmp319	%read{533,709} %write{533,709}
+temp	int	$tmp320	%read{533,709} %write{533,709}
+const	string	$const51	"vmt_s2l"		%read{613,673} %write{2147483647,-1}
+temp	float	$tmp321	%read{533,709} %write{533,709}
+temp	float	$tmp322	%read{533,709} %write{533,709}
+const	float	$const52	0.0404499993		%read{615,693} %write{2147483647,-1}
+temp	int	$tmp323	%read{533,709} %write{533,709}
+temp	float	$tmp324	%read{533,709} %write{533,709}
+const	float	$const53	12.9200001		%read{618,696} %write{2147483647,-1}
+temp	float	$tmp325	%read{533,709} %write{533,709}
+const	float	$const54	0.0549999997		%read{620,698} %write{2147483647,-1}
+temp	float	$tmp326	%read{533,709} %write{533,709}
+const	float	$const55	1.05499995		%read{621,699} %write{2147483647,-1}
+temp	float	$tmp327	%read{533,709} %write{533,709}
+const	float	$const56	2.4000001		%read{622,700} %write{2147483647,-1}
+temp	float	$tmp328	%read{533,709} %write{533,709}
+temp	float	$tmp329	%read{533,709} %write{533,709}
+temp	int	$tmp330	%read{533,709} %write{533,709}
+temp	float	$tmp331	%read{533,709} %write{533,709}
+temp	float	$tmp332	%read{533,709} %write{533,709}
+temp	float	$tmp333	%read{533,709} %write{533,709}
+temp	float	$tmp334	%read{533,709} %write{533,709}
+temp	float	$tmp335	%read{533,709} %write{533,709}
+temp	float	$tmp336	%read{533,709} %write{533,709}
+temp	int	$tmp337	%read{533,709} %write{533,709}
+temp	float	$tmp338	%read{533,709} %write{533,709}
+temp	float	$tmp339	%read{533,709} %write{533,709}
+temp	float	$tmp340	%read{533,709} %write{533,709}
+temp	float	$tmp341	%read{533,709} %write{533,709}
+temp	float	$tmp342	%read{533,709} %write{533,709}
+temp	float	$tmp343	%read{533,709} %write{533,709}
+temp	int	$tmp344	%read{533,709} %write{533,709}
+temp	float	$tmp345	%read{533,709} %write{533,709}
+temp	float	$tmp346	%read{533,709} %write{533,709}
+temp	float	$tmp347	%read{533,709} %write{533,709}
+temp	float	$tmp348	%read{533,709} %write{533,709}
+temp	float	$tmp349	%read{533,709} %write{533,709}
+temp	float	$tmp350	%read{533,709} %write{533,709}
+temp	int	$tmp351	%read{533,709} %write{533,709}
+temp	float	$tmp352	%read{533,709} %write{533,709}
+temp	float	$tmp353	%read{533,709} %write{533,709}
+temp	float	$tmp354	%read{533,709} %write{533,709}
+temp	float	$tmp355	%read{533,709} %write{533,709}
+temp	float	$tmp356	%read{533,709} %write{533,709}
+temp	float	$tmp357	%read{533,709} %write{533,709}
+temp	int	$tmp358	%read{533,709} %write{533,709}
+temp	float	$tmp359	%read{533,709} %write{533,709}
+temp	float	$tmp360	%read{533,709} %write{533,709}
+temp	float	$tmp361	%read{533,709} %write{533,709}
+temp	float	$tmp362	%read{533,709} %write{533,709}
+temp	float	$tmp363	%read{533,709} %write{533,709}
+temp	float	$tmp364	%read{533,709} %write{533,709}
+temp	int	$tmp365	%read{533,709} %write{533,709}
+temp	float	$tmp366	%read{533,709} %write{533,709}
+temp	float	$tmp367	%read{533,709} %write{533,709}
+temp	float	$tmp368	%read{533,709} %write{533,709}
+temp	float	$tmp369	%read{533,709} %write{533,709}
+temp	float	$tmp370	%read{533,709} %write{533,709}
+temp	float	$tmp371	%read{533,709} %write{533,709}
+temp	int	$tmp372	%read{533,709} %write{533,709}
+temp	float	$tmp373	%read{533,709} %write{533,709}
+temp	float	$tmp374	%read{533,709} %write{533,709}
+temp	float	$tmp375	%read{533,709} %write{533,709}
+temp	float	$tmp376	%read{533,709} %write{533,709}
+temp	float	$tmp377	%read{533,709} %write{533,709}
+temp	float	$tmp378	%read{533,709} %write{533,709}
+temp	int	$tmp379	%read{533,709} %write{533,709}
+temp	float	$tmp380	%read{533,709} %write{533,709}
+temp	float	$tmp381	%read{533,709} %write{533,709}
+temp	float	$tmp382	%read{533,709} %write{533,709}
+temp	float	$tmp383	%read{533,709} %write{533,709}
+temp	color	$tmp384	%read{533,709} %write{533,709}
+temp	color	$tmp385	%read{533,709} %write{533,709}
+temp	color	$tmp386	%read{533,709} %write{533,709}
+temp	color	$tmp387	%read{533,709} %write{533,709}
+temp	color	$tmp388	%read{533,709} %write{533,709}
+temp	float	$tmp389	%read{721,721} %write{719,719}
+temp	float	$tmp390	%read{721,721} %write{720,720}
+temp	float	$tmp391	%read{723,723} %write{721,721}
+temp	float	$tmp392	%read{723,723} %write{722,722}
+temp	int	$tmp393	%read{726,726} %write{725,725}
+temp	int	$tmp394	%read{728,728} %write{727,727}
+const	float	$const57	-1		%read{729,729} %write{2147483647,-1}
+temp	float	$tmp395	%read{734,734} %write{732,732}
+temp	float	$tmp396	%read{734,734} %write{733,733}
+temp	float	$tmp397	%read{737,737} %write{735,735}
+temp	float	$tmp398	%read{737,737} %write{736,736}
+temp	float	$tmp399	%read{740,740} %write{738,738}
+temp	float	$tmp400	%read{740,740} %write{739,739}
+temp	float	$tmp401	%read{743,743} %write{741,741}
+temp	float	$tmp402	%read{743,743} %write{742,742}
+temp	float	$tmp403	%read{753,753} %write{746,746} %derivs
+temp	float	$tmp404	%read{746,746} %write{745,745} %derivs
+temp	float	$tmp405	%read{750,750} %write{749,749} %derivs
+temp	float	$tmp406	%read{749,749} %write{748,748} %derivs
+temp	float	$tmp407	%read{753,753} %write{750,750} %derivs
+temp	float	$tmp408	%read{753,753} %write{751,751}
+temp	float	$tmp409	%read{753,753} %write{752,752}
+temp	float	$tmp410	%read{757,757} %write{755,755}
+temp	float	$tmp411	%read{757,757} %write{756,756}
+temp	float	$tmp412	%read{760,760} %write{758,758}
+temp	float	$tmp413	%read{760,760} %write{759,759}
+temp	float	$tmp414	%read{763,763} %write{761,761}
+temp	float	$tmp415	%read{763,763} %write{762,762}
+temp	float	$tmp416	%read{766,766} %write{764,764}
+temp	float	$tmp417	%read{766,766} %write{765,765}
+temp	float	$tmp418	%read{776,776} %write{769,769} %derivs
+temp	float	$tmp419	%read{769,769} %write{768,768} %derivs
+temp	float	$tmp420	%read{773,773} %write{772,772} %derivs
+temp	float	$tmp421	%read{772,772} %write{771,771} %derivs
+temp	float	$tmp422	%read{776,776} %write{773,773} %derivs
+temp	float	$tmp423	%read{776,776} %write{774,774}
+temp	float	$tmp424	%read{776,776} %write{775,775}
+temp	float	$tmp425	%read{780,780} %write{778,778}
+temp	float	$tmp426	%read{780,780} %write{779,779}
+temp	float	$tmp427	%read{783,783} %write{781,781}
+temp	float	$tmp428	%read{783,783} %write{782,782}
+temp	float	$tmp429	%read{786,786} %write{784,784}
+temp	float	$tmp430	%read{786,786} %write{785,785}
+temp	float	$tmp431	%read{789,789} %write{787,787}
+temp	float	$tmp432	%read{789,789} %write{788,788}
+temp	float	$tmp433	%read{799,799} %write{792,792} %derivs
+temp	float	$tmp434	%read{792,792} %write{791,791} %derivs
+temp	float	$tmp435	%read{796,796} %write{795,795} %derivs
+temp	float	$tmp436	%read{795,795} %write{794,794} %derivs
+temp	float	$tmp437	%read{799,799} %write{796,796} %derivs
+temp	float	$tmp438	%read{799,799} %write{797,797}
+temp	float	$tmp439	%read{799,799} %write{798,798}
+temp	float	$tmp440	%read{801,801} %write{800,800}
+temp	float	$tmp441	%read{802,802} %write{801,801}
+temp	float	$tmp442	%read{810,810} %write{802,802}
+temp	float	$tmp443	%read{804,804} %write{803,803}
+temp	float	$tmp444	%read{805,805} %write{804,804}
+temp	float	$tmp445	%read{806,806} %write{805,805}
+temp	float	$tmp446	%read{810,810} %write{806,806}
+temp	float	$tmp447	%read{808,808} %write{807,807}
+temp	float	$tmp448	%read{809,809} %write{808,808}
+temp	float	$tmp449	%read{810,810} %write{809,809}
+temp	float	$tmp450	%read{812,812} %write{811,811}
+temp	float	$tmp451	%read{813,813} %write{812,812}
+temp	float	$tmp452	%read{821,821} %write{813,813}
+temp	float	$tmp453	%read{815,815} %write{814,814}
+temp	float	$tmp454	%read{816,816} %write{815,815}
+temp	float	$tmp455	%read{817,817} %write{816,816}
+temp	float	$tmp456	%read{821,821} %write{817,817}
+temp	float	$tmp457	%read{819,819} %write{818,818}
+temp	float	$tmp458	%read{820,820} %write{819,819}
+temp	float	$tmp459	%read{821,821} %write{820,820}
+temp	float	$tmp460	%read{823,823} %write{822,822}
+temp	float	$tmp461	%read{824,824} %write{823,823}
+temp	float	$tmp462	%read{832,832} %write{824,824}
+temp	float	$tmp463	%read{826,826} %write{825,825}
+temp	float	$tmp464	%read{827,827} %write{826,826}
+temp	float	$tmp465	%read{828,828} %write{827,827}
+temp	float	$tmp466	%read{832,832} %write{828,828}
+temp	float	$tmp467	%read{830,830} %write{829,829}
+temp	float	$tmp468	%read{831,831} %write{830,830}
+temp	float	$tmp469	%read{832,832} %write{831,831}
+temp	float	$tmp470	%read{834,834} %write{833,833}
+temp	float	$tmp471	%read{837,837} %write{834,834}
+temp	float	$tmp472	%read{836,836} %write{835,835}
+temp	float	$tmp473	%read{837,837} %write{836,836}
+temp	float	$tmp474	%read{844,844} %write{837,837}
+temp	float	$tmp475	%read{839,839} %write{838,838}
+temp	float	$tmp476	%read{842,842} %write{839,839}
+temp	float	$tmp477	%read{841,841} %write{840,840}
+temp	float	$tmp478	%read{842,842} %write{841,841}
+temp	float	$tmp479	%read{844,844} %write{842,842}
+temp	float	$tmp480	%read{844,844} %write{843,843}
+temp	float	$tmp481	%read{846,846} %write{845,845}
+temp	float	$tmp482	%read{849,849} %write{846,846}
+temp	float	$tmp483	%read{848,848} %write{847,847}
+temp	float	$tmp484	%read{849,849} %write{848,848}
+temp	float	$tmp485	%read{856,856} %write{849,849}
+temp	float	$tmp486	%read{851,851} %write{850,850}
+temp	float	$tmp487	%read{854,854} %write{851,851}
+temp	float	$tmp488	%read{853,853} %write{852,852}
+temp	float	$tmp489	%read{854,854} %write{853,853}
+temp	float	$tmp490	%read{856,856} %write{854,854}
+temp	float	$tmp491	%read{856,856} %write{855,855}
+temp	float	$tmp492	%read{858,858} %write{857,857}
+temp	float	$tmp493	%read{861,861} %write{858,858}
+temp	float	$tmp494	%read{860,860} %write{859,859}
+temp	float	$tmp495	%read{861,861} %write{860,860}
+temp	float	$tmp496	%read{868,868} %write{861,861}
+temp	float	$tmp497	%read{863,863} %write{862,862}
+temp	float	$tmp498	%read{866,866} %write{863,863}
+temp	float	$tmp499	%read{865,865} %write{864,864}
+temp	float	$tmp500	%read{866,866} %write{865,865}
+temp	float	$tmp501	%read{868,868} %write{866,866}
+temp	float	$tmp502	%read{868,868} %write{867,867}
+temp	float	$tmp503	%read{870,870} %write{869,869}
+temp	float	$tmp504	%read{873,873} %write{870,870}
+temp	float	$tmp505	%read{873,873} %write{872,872}
+temp	float	$tmp506	%read{872,872} %write{871,871}
+const	float	$const58	0.00100000005		%read{872,897} %write{2147483647,-1}
+temp	float	$tmp507	%read{875,875} %write{874,874}
+temp	float	$tmp508	%read{878,878} %write{875,875}
+temp	float	$tmp509	%read{878,878} %write{877,877}
+temp	float	$tmp510	%read{877,877} %write{876,876}
+temp	float	$tmp511	%read{880,880} %write{879,879}
+temp	float	$tmp512	%read{883,883} %write{880,880}
+temp	float	$tmp513	%read{883,883} %write{882,882}
+temp	float	$tmp514	%read{882,882} %write{881,881}
+temp	float	$tmp515	%read{885,885} %write{884,884}
+temp	float	$tmp516	%read{888,888} %write{885,885}
+temp	float	$tmp517	%read{888,888} %write{887,887}
+temp	float	$tmp518	%read{887,887} %write{886,886}
+temp	float	$tmp519	%read{890,890} %write{889,889}
+temp	float	$tmp520	%read{893,893} %write{890,890}
+temp	float	$tmp521	%read{893,893} %write{892,892}
+temp	float	$tmp522	%read{892,892} %write{891,891}
+temp	float	$tmp523	%read{895,895} %write{894,894}
+temp	float	$tmp524	%read{898,898} %write{895,895}
+temp	float	$tmp525	%read{898,898} %write{897,897}
+temp	float	$tmp526	%read{897,897} %write{896,896}
+temp	float	$tmp527	%read{901,901} %write{899,899}
+temp	float	$tmp528	%read{901,901} %write{900,900}
+temp	float	$tmp529	%read{903,903} %write{901,901}
+temp	float	$tmp530	%read{903,903} %write{902,902}
+temp	float	$tmp531	%read{906,906} %write{904,904}
+temp	float	$tmp532	%read{906,906} %write{905,905}
+temp	float	$tmp533	%read{908,908} %write{906,906}
+temp	float	$tmp534	%read{908,908} %write{907,907}
+temp	vector	$tmp535	%read{912,912} %write{911,911}
+temp	float	$tmp536	%read{911,911} %write{909,909}
+temp	float	$tmp537	%read{911,911} %write{910,910}
+code uvU
+# vmtHexTile.osl:119
+#     float  uvU = u,
+	assign		uvU u 	%filename{"vmtHexTile.osl"} %line{119} %argrw{"wr"}
+code uvV
+# vmtHexTile.osl:120
+#     float  uvV = v,
+	assign		uvV v 	%filename{"vmtHexTile.osl"} %line{120} %argrw{"wr"}
+code ___main___
+# vmtHexTile.osl:149
+#     float stx = uvU * tileScale;
+	mul		stx uvU tileScale 	%filename{"vmtHexTile.osl"} %line{149} %argrw{"wrr"}
+# vmtHexTile.osl:150
+#     float sty = uvV * tileScale;
+	mul		sty uvV tileScale 	%line{150} %argrw{"wrr"}
+# vmtHexTile.osl:153
+#     vmt_tri(stx, sty, w0, w1, w2, v1x, v1y, v2x, v2y, v3x, v3y);
+	functioncall	$const1 37 	%line{153} %argrw{"r"}
+# vmtHexTile.osl:19
+#     float sc = 2.0 * 1.7320508;
+	assign		___363_sc $const2 	%line{19} %argrw{"wr"}
+# vmtHexTile.osl:20
+#     float ax = sx * sc, ay = sy * sc;
+	mul		___363_ax stx ___363_sc 	%line{20} %argrw{"wrr"}
+	mul		___363_ay sty ___363_sc 	%argrw{"wrr"}
+# vmtHexTile.osl:21
+#     float skx = ax - 0.57735027 * ay;
+	mul		$tmp1 $const3 ___363_ay 	%line{21} %argrw{"wrr"}
+	sub		___363_skx ___363_ax $tmp1 	%argrw{"wrr"}
+# vmtHexTile.osl:22
+#     float sky = 1.15470054 * ay;
+	mul		___363_sky $const4 ___363_ay 	%line{22} %argrw{"wrr"}
+# vmtHexTile.osl:23
+#     float bx = floor(skx), by = floor(sky);
+	floor		___363_bx ___363_skx 	%line{23} %argrw{"wr"}
+	floor		___363_by ___363_sky 	%argrw{"wr"}
+# vmtHexTile.osl:24
+#     float fx = skx - bx, fy = sky - by, fz = 1.0 - fx - fy;
+	sub		___363_fx ___363_skx ___363_bx 	%line{24} %argrw{"wrr"}
+	sub		___363_fy ___363_sky ___363_by 	%argrw{"wrr"}
+	sub		$tmp2 $const5 ___363_fx 	%argrw{"wrr"}
+	sub		___363_fz $tmp2 ___363_fy 	%argrw{"wrr"}
+# vmtHexTile.osl:25
+#     float g = (fz < 0.0) ? 1.0 : 0.0;
+	lt		$tmp3 ___363_fz $const6 	%line{25} %argrw{"wrr"}
+	if		$tmp3 20 21 	%argrw{"r"}
+	assign		___363_g $const5 	%argrw{"wr"}
+	assign		___363_g $const6 	%argrw{"wr"}
+# vmtHexTile.osl:26
+#     float s2 = 2.0 * g - 1.0;
+	mul		$tmp4 $const7 ___363_g 	%line{26} %argrw{"wrr"}
+	sub		___363_s2 $tmp4 $const5 	%argrw{"wrr"}
+# vmtHexTile.osl:27
+#     w0 = -fz * s2; w1 = g - fy * s2; w2 = g - fx * s2;
+	neg		$tmp5 ___363_fz 	%line{27} %argrw{"wr"}
+	mul		w0 $tmp5 ___363_s2 	%argrw{"wrr"}
+	mul		$tmp6 ___363_fy ___363_s2 	%argrw{"wrr"}
+	sub		w1 ___363_g $tmp6 	%argrw{"wrr"}
+	mul		$tmp7 ___363_fx ___363_s2 	%argrw{"wrr"}
+	sub		w2 ___363_g $tmp7 	%argrw{"wrr"}
+# vmtHexTile.osl:28
+#     v1x = bx + g;       v1y = by + g;
+	add		v1x ___363_bx ___363_g 	%line{28} %argrw{"wrr"}
+	add		v1y ___363_by ___363_g 	%argrw{"wrr"}
+# vmtHexTile.osl:29
+#     v2x = bx + g;       v2y = by + 1.0 - g;
+	add		v2x ___363_bx ___363_g 	%line{29} %argrw{"wrr"}
+	add		$tmp8 ___363_by $const5 	%argrw{"wrr"}
+	sub		v2y $tmp8 ___363_g 	%argrw{"wrr"}
+# vmtHexTile.osl:30
+#     v3x = bx + 1.0 - g; v3y = by + g;
+	add		$tmp9 ___363_bx $const5 	%line{30} %argrw{"wrr"}
+	sub		v3x $tmp9 ___363_g 	%argrw{"wrr"}
+	add		v3y ___363_by ___363_g 	%argrw{"wrr"}
+# vmtHexTile.osl:156
+#     vmt_tuv(stx, sty, v1x, v1y, rotStrength, u1x, u1y);
+	functioncall	$const8 107 	%line{156} %argrw{"r"}
+# vmtHexTile.osl:68
+#     float cx, cy; vmt_cen(vx, vy, cx, cy);
+	functioncall	$const9 45 	%line{68} %argrw{"r"}
+# vmtHexTile.osl:49
+#     float id = 1.0 / (2.0 * 1.7320508);
+	assign		___365_id $const10 	%line{49} %argrw{"wr"}
+# vmtHexTile.osl:50
+#     cx = (vx + 0.5 * vy) * id;
+	mul		$tmp10 $const11 v1y 	%line{50} %argrw{"wrr"}
+	add		$tmp11 v1x $tmp10 	%argrw{"wrr"}
+	mul		___367_cx $tmp11 ___365_id 	%argrw{"wrr"}
+# vmtHexTile.osl:51
+#     cy = (0.8660254 * vy) * id;
+	mul		$tmp12 $const12 v1y 	%line{51} %argrw{"wrr"}
+	mul		___367_cy $tmp12 ___365_id 	%argrw{"wrr"}
+# vmtHexTile.osl:69
+#     float ca, sa; vmt_rot(vx, vy, rs, ca, sa);
+	functioncall	$const13 65 	%line{69} %argrw{"r"}
+# vmtHexTile.osl:56
+#     float PI = 3.14159265, TAU = 6.28318531;
+	assign		___366_PI $const14 	%line{56} %argrw{"wr"}
+	assign		___366_TAU $const15 	%argrw{"wr"}
+# vmtHexTile.osl:57
+#     float a = abs(ix * iy) + abs(ix + iy) + PI;
+	mul		$tmp14 v1x v1y 	%line{57} %argrw{"wrr"}
+	abs		$tmp13 $tmp14 	%argrw{"wr"}
+	add		$tmp16 v1x v1y 	%argrw{"wrr"}
+	abs		$tmp15 $tmp16 	%argrw{"wr"}
+	add		$tmp17 $tmp13 $tmp15 	%argrw{"wrr"}
+	add		___366_a $tmp17 ___366_PI 	%argrw{"wrr"}
+# vmtHexTile.osl:58
+#     a = mod(a, TAU);
+	functioncall	$const16 59 	%line{58} %argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:137
+# float  mod (float  a, float  b) { return a - b*floor(a/b); }
+	div		$tmp19 ___366_a ___366_TAU 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{137} %argrw{"wrr"}
+	floor		$tmp18 $tmp19 	%argrw{"wr"}
+	mul		$tmp20 ___366_TAU $tmp18 	%argrw{"wrr"}
+	sub		___366_a ___366_a $tmp20 	%argrw{"wrr"}
+# vmtHexTile.osl:59
+#     if (a > PI) a -= TAU;
+	gt		$tmp21 ___366_a ___366_PI 	%filename{"vmtHexTile.osl"} %line{59} %argrw{"wrr"}
+	if		$tmp21 62 62 	%argrw{"r"}
+	sub		___366_a ___366_a ___366_TAU 	%argrw{"wrr"}
+# vmtHexTile.osl:60
+#     a *= rs;
+	mul		___366_a ___366_a rotStrength 	%line{60} %argrw{"wrr"}
+# vmtHexTile.osl:61
+#     ca = cos(a); sa = sin(a);
+	cos		___367_ca ___366_a 	%line{61} %argrw{"wr"}
+	sin		___367_sa ___366_a 	%argrw{"wr"}
+# vmtHexTile.osl:70
+#     float hx, hy; vmt_hash2(vx, vy, hx, hy);
+	functioncall	$const17 95 	%line{70} %argrw{"r"}
+# vmtHexTile.osl:37
+#     int ix = int(floor(vx + 0.5));
+	add		$tmp23 v1x $const11 	%line{37} %argrw{"wrr"}
+	floor		$tmp22 $tmp23 	%argrw{"wr"}
+	assign		___364_ix $tmp22 	%argrw{"wr"}
+# vmtHexTile.osl:38
+#     int iy = int(floor(vy + 0.5));
+	add		$tmp25 v1y $const11 	%line{38} %argrw{"wrr"}
+	floor		$tmp24 $tmp25 	%argrw{"wr"}
+	assign		___364_iy $tmp24 	%argrw{"wr"}
+# vmtHexTile.osl:39
+#     int h = ix * 0x9E3779B1 + iy * 0x85EBCA77;
+	mul		$tmp26 ___364_ix $const18 	%line{39} %argrw{"wrr"}
+	mul		$tmp27 ___364_iy $const19 	%argrw{"wrr"}
+	add		___364_h $tmp26 $tmp27 	%argrw{"wrr"}
+# vmtHexTile.osl:40
+#     h = h ^ ((h >> 16) & 0xFFFF);  h = h * 0x85EBCA6B;
+	shr		$tmp28 ___364_h $const20 	%line{40} %argrw{"wrr"}
+	bitand		$tmp29 $tmp28 $const21 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp29 	%argrw{"wrr"}
+	mul		___364_h ___364_h $const22 	%argrw{"wrr"}
+# vmtHexTile.osl:41
+#     h = h ^ ((h >> 13) & 0x7FFFF); h = h * 0xC2B2AE35;
+	shr		$tmp30 ___364_h $const23 	%line{41} %argrw{"wrr"}
+	bitand		$tmp31 $tmp30 $const24 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp31 	%argrw{"wrr"}
+	mul		___364_h ___364_h $const25 	%argrw{"wrr"}
+# vmtHexTile.osl:42
+#     h = h ^ ((h >> 16) & 0xFFFF);
+	shr		$tmp32 ___364_h $const20 	%line{42} %argrw{"wrr"}
+	bitand		$tmp33 $tmp32 $const21 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp33 	%argrw{"wrr"}
+# vmtHexTile.osl:43
+#     hx = float(h & 0xFFFF) / 65536.0;
+	bitand		$tmp35 ___364_h $const21 	%line{43} %argrw{"wrr"}
+	assign		$tmp36 $tmp35 	%argrw{"wr"}
+	assign		$tmp34 $tmp36 	%argrw{"wr"}
+	div		___367_hx $tmp34 $const26 	%argrw{"wrr"}
+# vmtHexTile.osl:44
+#     hy = float((h >> 16) & 0xFFFF) / 65536.0;
+	shr		$tmp38 ___364_h $const20 	%line{44} %argrw{"wrr"}
+	bitand		$tmp39 $tmp38 $const21 	%argrw{"wrr"}
+	assign		$tmp40 $tmp39 	%argrw{"wr"}
+	assign		$tmp37 $tmp40 	%argrw{"wr"}
+	div		___367_hy $tmp37 $const26 	%argrw{"wrr"}
+# vmtHexTile.osl:71
+#     float dx = stx - cx, dy = sty - cy;
+	sub		___367_dx stx ___367_cx 	%line{71} %argrw{"wrr"}
+	sub		___367_dy sty ___367_cy 	%argrw{"wrr"}
+# vmtHexTile.osl:72
+#     ox = (ca * dx - sa * dy) + cx + hx;
+	mul		$tmp41 ___367_ca ___367_dx 	%line{72} %argrw{"wrr"}
+	mul		$tmp42 ___367_sa ___367_dy 	%argrw{"wrr"}
+	sub		$tmp43 $tmp41 $tmp42 	%argrw{"wrr"}
+	add		$tmp44 $tmp43 ___367_cx 	%argrw{"wrr"}
+	add		u1x $tmp44 ___367_hx 	%argrw{"wrr"}
+# vmtHexTile.osl:73
+#     oy = (sa * dx + ca * dy) + cy + hy;
+	mul		$tmp45 ___367_sa ___367_dx 	%line{73} %argrw{"wrr"}
+	mul		$tmp46 ___367_ca ___367_dy 	%argrw{"wrr"}
+	add		$tmp47 $tmp45 $tmp46 	%argrw{"wrr"}
+	add		$tmp48 $tmp47 ___367_cy 	%argrw{"wrr"}
+	add		u1y $tmp48 ___367_hy 	%argrw{"wrr"}
+# vmtHexTile.osl:157
+#     vmt_tuv(stx, sty, v2x, v2y, rotStrength, u2x, u2y);
+	functioncall	$const8 177 	%line{157} %argrw{"r"}
+# vmtHexTile.osl:68
+#     float cx, cy; vmt_cen(vx, vy, cx, cy);
+	functioncall	$const9 115 	%line{68} %argrw{"r"}
+# vmtHexTile.osl:49
+#     float id = 1.0 / (2.0 * 1.7320508);
+	assign		___365_id $const10 	%line{49} %argrw{"wr"}
+# vmtHexTile.osl:50
+#     cx = (vx + 0.5 * vy) * id;
+	mul		$tmp49 $const11 v2y 	%line{50} %argrw{"wrr"}
+	add		$tmp50 v2x $tmp49 	%argrw{"wrr"}
+	mul		___367_cx $tmp50 ___365_id 	%argrw{"wrr"}
+# vmtHexTile.osl:51
+#     cy = (0.8660254 * vy) * id;
+	mul		$tmp51 $const12 v2y 	%line{51} %argrw{"wrr"}
+	mul		___367_cy $tmp51 ___365_id 	%argrw{"wrr"}
+# vmtHexTile.osl:69
+#     float ca, sa; vmt_rot(vx, vy, rs, ca, sa);
+	functioncall	$const13 135 	%line{69} %argrw{"r"}
+# vmtHexTile.osl:56
+#     float PI = 3.14159265, TAU = 6.28318531;
+	assign		___366_PI $const14 	%line{56} %argrw{"wr"}
+	assign		___366_TAU $const15 	%argrw{"wr"}
+# vmtHexTile.osl:57
+#     float a = abs(ix * iy) + abs(ix + iy) + PI;
+	mul		$tmp53 v2x v2y 	%line{57} %argrw{"wrr"}
+	abs		$tmp52 $tmp53 	%argrw{"wr"}
+	add		$tmp55 v2x v2y 	%argrw{"wrr"}
+	abs		$tmp54 $tmp55 	%argrw{"wr"}
+	add		$tmp56 $tmp52 $tmp54 	%argrw{"wrr"}
+	add		___366_a $tmp56 ___366_PI 	%argrw{"wrr"}
+# vmtHexTile.osl:58
+#     a = mod(a, TAU);
+	functioncall	$const16 129 	%line{58} %argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:137
+# float  mod (float  a, float  b) { return a - b*floor(a/b); }
+	div		$tmp58 ___366_a ___366_TAU 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{137} %argrw{"wrr"}
+	floor		$tmp57 $tmp58 	%argrw{"wr"}
+	mul		$tmp59 ___366_TAU $tmp57 	%argrw{"wrr"}
+	sub		___366_a ___366_a $tmp59 	%argrw{"wrr"}
+# vmtHexTile.osl:59
+#     if (a > PI) a -= TAU;
+	gt		$tmp60 ___366_a ___366_PI 	%filename{"vmtHexTile.osl"} %line{59} %argrw{"wrr"}
+	if		$tmp60 132 132 	%argrw{"r"}
+	sub		___366_a ___366_a ___366_TAU 	%argrw{"wrr"}
+# vmtHexTile.osl:60
+#     a *= rs;
+	mul		___366_a ___366_a rotStrength 	%line{60} %argrw{"wrr"}
+# vmtHexTile.osl:61
+#     ca = cos(a); sa = sin(a);
+	cos		___367_ca ___366_a 	%line{61} %argrw{"wr"}
+	sin		___367_sa ___366_a 	%argrw{"wr"}
+# vmtHexTile.osl:70
+#     float hx, hy; vmt_hash2(vx, vy, hx, hy);
+	functioncall	$const17 165 	%line{70} %argrw{"r"}
+# vmtHexTile.osl:37
+#     int ix = int(floor(vx + 0.5));
+	add		$tmp62 v2x $const11 	%line{37} %argrw{"wrr"}
+	floor		$tmp61 $tmp62 	%argrw{"wr"}
+	assign		___364_ix $tmp61 	%argrw{"wr"}
+# vmtHexTile.osl:38
+#     int iy = int(floor(vy + 0.5));
+	add		$tmp64 v2y $const11 	%line{38} %argrw{"wrr"}
+	floor		$tmp63 $tmp64 	%argrw{"wr"}
+	assign		___364_iy $tmp63 	%argrw{"wr"}
+# vmtHexTile.osl:39
+#     int h = ix * 0x9E3779B1 + iy * 0x85EBCA77;
+	mul		$tmp65 ___364_ix $const18 	%line{39} %argrw{"wrr"}
+	mul		$tmp66 ___364_iy $const19 	%argrw{"wrr"}
+	add		___364_h $tmp65 $tmp66 	%argrw{"wrr"}
+# vmtHexTile.osl:40
+#     h = h ^ ((h >> 16) & 0xFFFF);  h = h * 0x85EBCA6B;
+	shr		$tmp67 ___364_h $const20 	%line{40} %argrw{"wrr"}
+	bitand		$tmp68 $tmp67 $const21 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp68 	%argrw{"wrr"}
+	mul		___364_h ___364_h $const22 	%argrw{"wrr"}
+# vmtHexTile.osl:41
+#     h = h ^ ((h >> 13) & 0x7FFFF); h = h * 0xC2B2AE35;
+	shr		$tmp69 ___364_h $const23 	%line{41} %argrw{"wrr"}
+	bitand		$tmp70 $tmp69 $const24 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp70 	%argrw{"wrr"}
+	mul		___364_h ___364_h $const25 	%argrw{"wrr"}
+# vmtHexTile.osl:42
+#     h = h ^ ((h >> 16) & 0xFFFF);
+	shr		$tmp71 ___364_h $const20 	%line{42} %argrw{"wrr"}
+	bitand		$tmp72 $tmp71 $const21 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp72 	%argrw{"wrr"}
+# vmtHexTile.osl:43
+#     hx = float(h & 0xFFFF) / 65536.0;
+	bitand		$tmp74 ___364_h $const21 	%line{43} %argrw{"wrr"}
+	assign		$tmp75 $tmp74 	%argrw{"wr"}
+	assign		$tmp73 $tmp75 	%argrw{"wr"}
+	div		___367_hx $tmp73 $const26 	%argrw{"wrr"}
+# vmtHexTile.osl:44
+#     hy = float((h >> 16) & 0xFFFF) / 65536.0;
+	shr		$tmp77 ___364_h $const20 	%line{44} %argrw{"wrr"}
+	bitand		$tmp78 $tmp77 $const21 	%argrw{"wrr"}
+	assign		$tmp79 $tmp78 	%argrw{"wr"}
+	assign		$tmp76 $tmp79 	%argrw{"wr"}
+	div		___367_hy $tmp76 $const26 	%argrw{"wrr"}
+# vmtHexTile.osl:71
+#     float dx = stx - cx, dy = sty - cy;
+	sub		___367_dx stx ___367_cx 	%line{71} %argrw{"wrr"}
+	sub		___367_dy sty ___367_cy 	%argrw{"wrr"}
+# vmtHexTile.osl:72
+#     ox = (ca * dx - sa * dy) + cx + hx;
+	mul		$tmp80 ___367_ca ___367_dx 	%line{72} %argrw{"wrr"}
+	mul		$tmp81 ___367_sa ___367_dy 	%argrw{"wrr"}
+	sub		$tmp82 $tmp80 $tmp81 	%argrw{"wrr"}
+	add		$tmp83 $tmp82 ___367_cx 	%argrw{"wrr"}
+	add		u2x $tmp83 ___367_hx 	%argrw{"wrr"}
+# vmtHexTile.osl:73
+#     oy = (sa * dx + ca * dy) + cy + hy;
+	mul		$tmp84 ___367_sa ___367_dx 	%line{73} %argrw{"wrr"}
+	mul		$tmp85 ___367_ca ___367_dy 	%argrw{"wrr"}
+	add		$tmp86 $tmp84 $tmp85 	%argrw{"wrr"}
+	add		$tmp87 $tmp86 ___367_cy 	%argrw{"wrr"}
+	add		u2y $tmp87 ___367_hy 	%argrw{"wrr"}
+# vmtHexTile.osl:158
+#     vmt_tuv(stx, sty, v3x, v3y, rotStrength, u3x, u3y);
+	functioncall	$const8 247 	%line{158} %argrw{"r"}
+# vmtHexTile.osl:68
+#     float cx, cy; vmt_cen(vx, vy, cx, cy);
+	functioncall	$const9 185 	%line{68} %argrw{"r"}
+# vmtHexTile.osl:49
+#     float id = 1.0 / (2.0 * 1.7320508);
+	assign		___365_id $const10 	%line{49} %argrw{"wr"}
+# vmtHexTile.osl:50
+#     cx = (vx + 0.5 * vy) * id;
+	mul		$tmp88 $const11 v3y 	%line{50} %argrw{"wrr"}
+	add		$tmp89 v3x $tmp88 	%argrw{"wrr"}
+	mul		___367_cx $tmp89 ___365_id 	%argrw{"wrr"}
+# vmtHexTile.osl:51
+#     cy = (0.8660254 * vy) * id;
+	mul		$tmp90 $const12 v3y 	%line{51} %argrw{"wrr"}
+	mul		___367_cy $tmp90 ___365_id 	%argrw{"wrr"}
+# vmtHexTile.osl:69
+#     float ca, sa; vmt_rot(vx, vy, rs, ca, sa);
+	functioncall	$const13 205 	%line{69} %argrw{"r"}
+# vmtHexTile.osl:56
+#     float PI = 3.14159265, TAU = 6.28318531;
+	assign		___366_PI $const14 	%line{56} %argrw{"wr"}
+	assign		___366_TAU $const15 	%argrw{"wr"}
+# vmtHexTile.osl:57
+#     float a = abs(ix * iy) + abs(ix + iy) + PI;
+	mul		$tmp92 v3x v3y 	%line{57} %argrw{"wrr"}
+	abs		$tmp91 $tmp92 	%argrw{"wr"}
+	add		$tmp94 v3x v3y 	%argrw{"wrr"}
+	abs		$tmp93 $tmp94 	%argrw{"wr"}
+	add		$tmp95 $tmp91 $tmp93 	%argrw{"wrr"}
+	add		___366_a $tmp95 ___366_PI 	%argrw{"wrr"}
+# vmtHexTile.osl:58
+#     a = mod(a, TAU);
+	functioncall	$const16 199 	%line{58} %argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:137
+# float  mod (float  a, float  b) { return a - b*floor(a/b); }
+	div		$tmp97 ___366_a ___366_TAU 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{137} %argrw{"wrr"}
+	floor		$tmp96 $tmp97 	%argrw{"wr"}
+	mul		$tmp98 ___366_TAU $tmp96 	%argrw{"wrr"}
+	sub		___366_a ___366_a $tmp98 	%argrw{"wrr"}
+# vmtHexTile.osl:59
+#     if (a > PI) a -= TAU;
+	gt		$tmp99 ___366_a ___366_PI 	%filename{"vmtHexTile.osl"} %line{59} %argrw{"wrr"}
+	if		$tmp99 202 202 	%argrw{"r"}
+	sub		___366_a ___366_a ___366_TAU 	%argrw{"wrr"}
+# vmtHexTile.osl:60
+#     a *= rs;
+	mul		___366_a ___366_a rotStrength 	%line{60} %argrw{"wrr"}
+# vmtHexTile.osl:61
+#     ca = cos(a); sa = sin(a);
+	cos		___367_ca ___366_a 	%line{61} %argrw{"wr"}
+	sin		___367_sa ___366_a 	%argrw{"wr"}
+# vmtHexTile.osl:70
+#     float hx, hy; vmt_hash2(vx, vy, hx, hy);
+	functioncall	$const17 235 	%line{70} %argrw{"r"}
+# vmtHexTile.osl:37
+#     int ix = int(floor(vx + 0.5));
+	add		$tmp101 v3x $const11 	%line{37} %argrw{"wrr"}
+	floor		$tmp100 $tmp101 	%argrw{"wr"}
+	assign		___364_ix $tmp100 	%argrw{"wr"}
+# vmtHexTile.osl:38
+#     int iy = int(floor(vy + 0.5));
+	add		$tmp103 v3y $const11 	%line{38} %argrw{"wrr"}
+	floor		$tmp102 $tmp103 	%argrw{"wr"}
+	assign		___364_iy $tmp102 	%argrw{"wr"}
+# vmtHexTile.osl:39
+#     int h = ix * 0x9E3779B1 + iy * 0x85EBCA77;
+	mul		$tmp104 ___364_ix $const18 	%line{39} %argrw{"wrr"}
+	mul		$tmp105 ___364_iy $const19 	%argrw{"wrr"}
+	add		___364_h $tmp104 $tmp105 	%argrw{"wrr"}
+# vmtHexTile.osl:40
+#     h = h ^ ((h >> 16) & 0xFFFF);  h = h * 0x85EBCA6B;
+	shr		$tmp106 ___364_h $const20 	%line{40} %argrw{"wrr"}
+	bitand		$tmp107 $tmp106 $const21 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp107 	%argrw{"wrr"}
+	mul		___364_h ___364_h $const22 	%argrw{"wrr"}
+# vmtHexTile.osl:41
+#     h = h ^ ((h >> 13) & 0x7FFFF); h = h * 0xC2B2AE35;
+	shr		$tmp108 ___364_h $const23 	%line{41} %argrw{"wrr"}
+	bitand		$tmp109 $tmp108 $const24 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp109 	%argrw{"wrr"}
+	mul		___364_h ___364_h $const25 	%argrw{"wrr"}
+# vmtHexTile.osl:42
+#     h = h ^ ((h >> 16) & 0xFFFF);
+	shr		$tmp110 ___364_h $const20 	%line{42} %argrw{"wrr"}
+	bitand		$tmp111 $tmp110 $const21 	%argrw{"wrr"}
+	xor		___364_h ___364_h $tmp111 	%argrw{"wrr"}
+# vmtHexTile.osl:43
+#     hx = float(h & 0xFFFF) / 65536.0;
+	bitand		$tmp113 ___364_h $const21 	%line{43} %argrw{"wrr"}
+	assign		$tmp114 $tmp113 	%argrw{"wr"}
+	assign		$tmp112 $tmp114 	%argrw{"wr"}
+	div		___367_hx $tmp112 $const26 	%argrw{"wrr"}
+# vmtHexTile.osl:44
+#     hy = float((h >> 16) & 0xFFFF) / 65536.0;
+	shr		$tmp116 ___364_h $const20 	%line{44} %argrw{"wrr"}
+	bitand		$tmp117 $tmp116 $const21 	%argrw{"wrr"}
+	assign		$tmp118 $tmp117 	%argrw{"wr"}
+	assign		$tmp115 $tmp118 	%argrw{"wr"}
+	div		___367_hy $tmp115 $const26 	%argrw{"wrr"}
+# vmtHexTile.osl:71
+#     float dx = stx - cx, dy = sty - cy;
+	sub		___367_dx stx ___367_cx 	%line{71} %argrw{"wrr"}
+	sub		___367_dy sty ___367_cy 	%argrw{"wrr"}
+# vmtHexTile.osl:72
+#     ox = (ca * dx - sa * dy) + cx + hx;
+	mul		$tmp119 ___367_ca ___367_dx 	%line{72} %argrw{"wrr"}
+	mul		$tmp120 ___367_sa ___367_dy 	%argrw{"wrr"}
+	sub		$tmp121 $tmp119 $tmp120 	%argrw{"wrr"}
+	add		$tmp122 $tmp121 ___367_cx 	%argrw{"wrr"}
+	add		u3x $tmp122 ___367_hx 	%argrw{"wrr"}
+# vmtHexTile.osl:73
+#     oy = (sa * dx + ca * dy) + cy + hy;
+	mul		$tmp123 ___367_sa ___367_dx 	%line{73} %argrw{"wrr"}
+	mul		$tmp124 ___367_ca ___367_dy 	%argrw{"wrr"}
+	add		$tmp125 $tmp123 $tmp124 	%argrw{"wrr"}
+	add		$tmp126 $tmp125 ___367_cy 	%argrw{"wrr"}
+	add		u3y $tmp126 ___367_hy 	%argrw{"wrr"}
+# vmtHexTile.osl:162
+#     vmt_rot(v1x, v1y, rotStrength, ca1, sa1);
+	functioncall	$const13 267 	%line{162} %argrw{"r"}
+# vmtHexTile.osl:56
+#     float PI = 3.14159265, TAU = 6.28318531;
+	assign		___366_PI $const14 	%line{56} %argrw{"wr"}
+	assign		___366_TAU $const15 	%argrw{"wr"}
+# vmtHexTile.osl:57
+#     float a = abs(ix * iy) + abs(ix + iy) + PI;
+	mul		$tmp128 v1x v1y 	%line{57} %argrw{"wrr"}
+	abs		$tmp127 $tmp128 	%argrw{"wr"}
+	add		$tmp130 v1x v1y 	%argrw{"wrr"}
+	abs		$tmp129 $tmp130 	%argrw{"wr"}
+	add		$tmp131 $tmp127 $tmp129 	%argrw{"wrr"}
+	add		___366_a $tmp131 ___366_PI 	%argrw{"wrr"}
+# vmtHexTile.osl:58
+#     a = mod(a, TAU);
+	functioncall	$const16 261 	%line{58} %argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:137
+# float  mod (float  a, float  b) { return a - b*floor(a/b); }
+	div		$tmp133 ___366_a ___366_TAU 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{137} %argrw{"wrr"}
+	floor		$tmp132 $tmp133 	%argrw{"wr"}
+	mul		$tmp134 ___366_TAU $tmp132 	%argrw{"wrr"}
+	sub		___366_a ___366_a $tmp134 	%argrw{"wrr"}
+# vmtHexTile.osl:59
+#     if (a > PI) a -= TAU;
+	gt		$tmp135 ___366_a ___366_PI 	%filename{"vmtHexTile.osl"} %line{59} %argrw{"wrr"}
+	if		$tmp135 264 264 	%argrw{"r"}
+	sub		___366_a ___366_a ___366_TAU 	%argrw{"wrr"}
+# vmtHexTile.osl:60
+#     a *= rs;
+	mul		___366_a ___366_a rotStrength 	%line{60} %argrw{"wrr"}
+# vmtHexTile.osl:61
+#     ca = cos(a); sa = sin(a);
+	cos		ca1 ___366_a 	%line{61} %argrw{"wr"}
+	sin		sa1 ___366_a 	%argrw{"wr"}
+# vmtHexTile.osl:163
+#     vmt_rot(v2x, v2y, rotStrength, ca2, sa2);
+	functioncall	$const13 287 	%line{163} %argrw{"r"}
+# vmtHexTile.osl:56
+#     float PI = 3.14159265, TAU = 6.28318531;
+	assign		___366_PI $const14 	%line{56} %argrw{"wr"}
+	assign		___366_TAU $const15 	%argrw{"wr"}
+# vmtHexTile.osl:57
+#     float a = abs(ix * iy) + abs(ix + iy) + PI;
+	mul		$tmp137 v2x v2y 	%line{57} %argrw{"wrr"}
+	abs		$tmp136 $tmp137 	%argrw{"wr"}
+	add		$tmp139 v2x v2y 	%argrw{"wrr"}
+	abs		$tmp138 $tmp139 	%argrw{"wr"}
+	add		$tmp140 $tmp136 $tmp138 	%argrw{"wrr"}
+	add		___366_a $tmp140 ___366_PI 	%argrw{"wrr"}
+# vmtHexTile.osl:58
+#     a = mod(a, TAU);
+	functioncall	$const16 281 	%line{58} %argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:137
+# float  mod (float  a, float  b) { return a - b*floor(a/b); }
+	div		$tmp142 ___366_a ___366_TAU 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{137} %argrw{"wrr"}
+	floor		$tmp141 $tmp142 	%argrw{"wr"}
+	mul		$tmp143 ___366_TAU $tmp141 	%argrw{"wrr"}
+	sub		___366_a ___366_a $tmp143 	%argrw{"wrr"}
+# vmtHexTile.osl:59
+#     if (a > PI) a -= TAU;
+	gt		$tmp144 ___366_a ___366_PI 	%filename{"vmtHexTile.osl"} %line{59} %argrw{"wrr"}
+	if		$tmp144 284 284 	%argrw{"r"}
+	sub		___366_a ___366_a ___366_TAU 	%argrw{"wrr"}
+# vmtHexTile.osl:60
+#     a *= rs;
+	mul		___366_a ___366_a rotStrength 	%line{60} %argrw{"wrr"}
+# vmtHexTile.osl:61
+#     ca = cos(a); sa = sin(a);
+	cos		ca2 ___366_a 	%line{61} %argrw{"wr"}
+	sin		sa2 ___366_a 	%argrw{"wr"}
+# vmtHexTile.osl:164
+#     vmt_rot(v3x, v3y, rotStrength, ca3, sa3);
+	functioncall	$const13 307 	%line{164} %argrw{"r"}
+# vmtHexTile.osl:56
+#     float PI = 3.14159265, TAU = 6.28318531;
+	assign		___366_PI $const14 	%line{56} %argrw{"wr"}
+	assign		___366_TAU $const15 	%argrw{"wr"}
+# vmtHexTile.osl:57
+#     float a = abs(ix * iy) + abs(ix + iy) + PI;
+	mul		$tmp146 v3x v3y 	%line{57} %argrw{"wrr"}
+	abs		$tmp145 $tmp146 	%argrw{"wr"}
+	add		$tmp148 v3x v3y 	%argrw{"wrr"}
+	abs		$tmp147 $tmp148 	%argrw{"wr"}
+	add		$tmp149 $tmp145 $tmp147 	%argrw{"wrr"}
+	add		___366_a $tmp149 ___366_PI 	%argrw{"wrr"}
+# vmtHexTile.osl:58
+#     a = mod(a, TAU);
+	functioncall	$const16 301 	%line{58} %argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:137
+# float  mod (float  a, float  b) { return a - b*floor(a/b); }
+	div		$tmp151 ___366_a ___366_TAU 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{137} %argrw{"wrr"}
+	floor		$tmp150 $tmp151 	%argrw{"wr"}
+	mul		$tmp152 ___366_TAU $tmp150 	%argrw{"wrr"}
+	sub		___366_a ___366_a $tmp152 	%argrw{"wrr"}
+# vmtHexTile.osl:59
+#     if (a > PI) a -= TAU;
+	gt		$tmp153 ___366_a ___366_PI 	%filename{"vmtHexTile.osl"} %line{59} %argrw{"wrr"}
+	if		$tmp153 304 304 	%argrw{"r"}
+	sub		___366_a ___366_a ___366_TAU 	%argrw{"wrr"}
+# vmtHexTile.osl:60
+#     a *= rs;
+	mul		___366_a ___366_a rotStrength 	%line{60} %argrw{"wrr"}
+# vmtHexTile.osl:61
+#     ca = cos(a); sa = sin(a);
+	cos		ca3 ___366_a 	%line{61} %argrw{"wr"}
+	sin		sa3 ___366_a 	%argrw{"wr"}
+# vmtHexTile.osl:166
+#     float dStxDx = Dx(stx), dStxDy = Dy(stx);
+	Dx		dStxDx stx 	%line{166} %argrw{"wr"} %argderivs{1}
+	Dy		dStxDy stx 	%argrw{"wr"} %argderivs{1}
+# vmtHexTile.osl:167
+#     float dStyDx = Dx(sty), dStyDy = Dy(sty);
+	Dx		dStyDx sty 	%line{167} %argrw{"wr"} %argderivs{1}
+	Dy		dStyDy sty 	%argrw{"wr"} %argderivs{1}
+# vmtHexTile.osl:171
+#     float h1 = 0, h2 = 0, h3 = 0;
+	assign		h1 $const27 	%line{171} %argrw{"wr"}
+	assign		h2 $const27 	%argrw{"wr"}
+	assign		h3 $const27 	%argrw{"wr"}
+# vmtHexTile.osl:172
+#     int useHeight = (heightMap != "");
+	neq		useHeight heightMap $const28 	%line{172} %argrw{"wrr"}
+# vmtHexTile.osl:173
+#     if (useHeight) {
+	if		useHeight 435 441 	%line{173} %argrw{"r"}
+# vmtHexTile.osl:174
+#         color hc1 = vmt_smpD(heightMap, u1x, u1y, ca1, sa1, dStxDx, dStxDy, dStyDx, dStyDy);
+	functioncall	$const29 339 	%line{174} %argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp154 ca1 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp155 sa1 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp154 $tmp155 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp156 ca1 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp157 sa1 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp156 $tmp157 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp158 sa1 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp159 ca1 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp158 $tmp159 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp160 sa1 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp161 ca1 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp160 $tmp161 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 332 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp163 u1x 	%line{10} %argrw{"wr"}
+	sub		$tmp162 u1x $tmp163 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 335 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp165 u1y 	%line{10} %argrw{"wr"}
+	sub		$tmp164 u1y $tmp165 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp166 $const5 $tmp164 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp167 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp168 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___373_hc1 heightMap $tmp162 $tmp166 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp167 $const34 $tmp168 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:175
+#         color hc2 = vmt_smpD(heightMap, u2x, u2y, ca2, sa2, dStxDx, dStxDy, dStyDx, dStyDy);
+	functioncall	$const29 362 	%line{175} %argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp169 ca2 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp170 sa2 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp169 $tmp170 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp171 ca2 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp172 sa2 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp171 $tmp172 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp173 sa2 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp174 ca2 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp173 $tmp174 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp175 sa2 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp176 ca2 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp175 $tmp176 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 355 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp178 u2x 	%line{10} %argrw{"wr"}
+	sub		$tmp177 u2x $tmp178 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 358 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp180 u2y 	%line{10} %argrw{"wr"}
+	sub		$tmp179 u2y $tmp180 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp181 $const5 $tmp179 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp182 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp183 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___373_hc2 heightMap $tmp177 $tmp181 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp182 $const34 $tmp183 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:176
+#         color hc3 = vmt_smpD(heightMap, u3x, u3y, ca3, sa3, dStxDx, dStxDy, dStyDx, dStyDy);
+	functioncall	$const29 385 	%line{176} %argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp184 ca3 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp185 sa3 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp184 $tmp185 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp186 ca3 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp187 sa3 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp186 $tmp187 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp188 sa3 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp189 ca3 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp188 $tmp189 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp190 sa3 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp191 ca3 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp190 $tmp191 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 378 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp193 u3x 	%line{10} %argrw{"wr"}
+	sub		$tmp192 u3x $tmp193 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 381 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp195 u3y 	%line{10} %argrw{"wr"}
+	sub		$tmp194 u3y $tmp195 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp196 $const5 $tmp194 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp197 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp198 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___373_hc3 heightMap $tmp192 $tmp196 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp197 $const34 $tmp198 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:177
+#         h1 = hc1[0]; h2 = hc2[0]; h3 = hc3[0];
+	compref		h1 ___373_hc1 $const27 	%line{177} %argrw{"wrr"}
+	compref		h2 ___373_hc2 $const27 	%argrw{"wrr"}
+	compref		h3 ___373_hc3 $const27 	%argrw{"wrr"}
+# vmtHexTile.osl:178
+#         float r0 = w0 + heightWeight * h1;
+	mul		$tmp199 heightWeight h1 	%line{178} %argrw{"wrr"}
+	add		___373_r0 w0 $tmp199 	%argrw{"wrr"}
+# vmtHexTile.osl:179
+#         float r1 = w1 + heightWeight * h2;
+	mul		$tmp200 heightWeight h2 	%line{179} %argrw{"wrr"}
+	add		___373_r1 w1 $tmp200 	%argrw{"wrr"}
+# vmtHexTile.osl:180
+#         float r2 = w2 + heightWeight * h3;
+	mul		$tmp201 heightWeight h3 	%line{180} %argrw{"wrr"}
+	add		___373_r2 w2 $tmp201 	%argrw{"wrr"}
+# vmtHexTile.osl:181
+#         float dl = max(heightDelta * 0.70710678, 0.0001);
+	mul		$tmp202 heightDelta $const37 	%line{181} %argrw{"wrr"}
+	max		___373_dl $tmp202 $const38 	%argrw{"wrr"}
+# vmtHexTile.osl:183
+#         float s01 = clamp((r0 - r1 + dl) / dl, 0.0, 1.0);
+	sub		$tmp203 ___373_r0 ___373_r1 	%line{183} %argrw{"wrr"}
+	add		$tmp204 $tmp203 ___373_dl 	%argrw{"wrr"}
+	div		$tmp205 $tmp204 ___373_dl 	%argrw{"wrr"}
+	functioncall	$const39 402 	%argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:146
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp206 $tmp205 $const5 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{146} %argrw{"wrr"}
+	max		___373_s01 $tmp206 $const6 	%argrw{"wrr"}
+# vmtHexTile.osl:184
+#         float s02 = clamp((r0 - r2 + dl) / dl, 0.0, 1.0);
+	sub		$tmp207 ___373_r0 ___373_r2 	%filename{"vmtHexTile.osl"} %line{184} %argrw{"wrr"}
+	add		$tmp208 $tmp207 ___373_dl 	%argrw{"wrr"}
+	div		$tmp209 $tmp208 ___373_dl 	%argrw{"wrr"}
+	functioncall	$const39 408 	%argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:146
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp210 $tmp209 $const5 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{146} %argrw{"wrr"}
+	max		___373_s02 $tmp210 $const6 	%argrw{"wrr"}
+# vmtHexTile.osl:185
+#         float s10 = clamp((r1 - r0 + dl) / dl, 0.0, 1.0);
+	sub		$tmp211 ___373_r1 ___373_r0 	%filename{"vmtHexTile.osl"} %line{185} %argrw{"wrr"}
+	add		$tmp212 $tmp211 ___373_dl 	%argrw{"wrr"}
+	div		$tmp213 $tmp212 ___373_dl 	%argrw{"wrr"}
+	functioncall	$const39 414 	%argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:146
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp214 $tmp213 $const5 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{146} %argrw{"wrr"}
+	max		___373_s10 $tmp214 $const6 	%argrw{"wrr"}
+# vmtHexTile.osl:186
+#         float s12 = clamp((r1 - r2 + dl) / dl, 0.0, 1.0);
+	sub		$tmp215 ___373_r1 ___373_r2 	%filename{"vmtHexTile.osl"} %line{186} %argrw{"wrr"}
+	add		$tmp216 $tmp215 ___373_dl 	%argrw{"wrr"}
+	div		$tmp217 $tmp216 ___373_dl 	%argrw{"wrr"}
+	functioncall	$const39 420 	%argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:146
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp218 $tmp217 $const5 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{146} %argrw{"wrr"}
+	max		___373_s12 $tmp218 $const6 	%argrw{"wrr"}
+# vmtHexTile.osl:187
+#         float s20 = clamp((r2 - r0 + dl) / dl, 0.0, 1.0);
+	sub		$tmp219 ___373_r2 ___373_r0 	%filename{"vmtHexTile.osl"} %line{187} %argrw{"wrr"}
+	add		$tmp220 $tmp219 ___373_dl 	%argrw{"wrr"}
+	div		$tmp221 $tmp220 ___373_dl 	%argrw{"wrr"}
+	functioncall	$const39 426 	%argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:146
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp222 $tmp221 $const5 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{146} %argrw{"wrr"}
+	max		___373_s20 $tmp222 $const6 	%argrw{"wrr"}
+# vmtHexTile.osl:188
+#         float s21 = clamp((r2 - r1 + dl) / dl, 0.0, 1.0);
+	sub		$tmp223 ___373_r2 ___373_r1 	%filename{"vmtHexTile.osl"} %line{188} %argrw{"wrr"}
+	add		$tmp224 $tmp223 ___373_dl 	%argrw{"wrr"}
+	div		$tmp225 $tmp224 ___373_dl 	%argrw{"wrr"}
+	functioncall	$const39 432 	%argrw{"r"}
+# C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h:146
+# float  clamp (float x, float minval, float maxval) { return max(min(x,maxval),minval); }
+	min		$tmp226 $tmp225 $const5 	%filename{"C:\\\\Program Files\\\\Autodesk\\\\Arnold\\\\Maya2026/osl/include/stdosl.h"} %line{146} %argrw{"wrr"}
+	max		___373_s21 $tmp226 $const6 	%argrw{"wrr"}
+# vmtHexTile.osl:189
+#         W0 = min(s01, s02);
+	min		W0 ___373_s01 ___373_s02 	%filename{"vmtHexTile.osl"} %line{189} %argrw{"wrr"}
+# vmtHexTile.osl:190
+#         W1 = min(s10, s12);
+	min		W1 ___373_s10 ___373_s12 	%line{190} %argrw{"wrr"}
+# vmtHexTile.osl:191
+#         W2 = min(s20, s21);
+	min		W2 ___373_s20 ___373_s21 	%line{191} %argrw{"wrr"}
+# vmtHexTile.osl:193
+#         W0 = pow(max(w0, 0.0), 7.0);
+	max		$tmp227 w0 $const6 	%line{193} %argrw{"wrr"}
+	pow		W0 $tmp227 $const40 	%argrw{"wrr"}
+# vmtHexTile.osl:194
+#         W1 = pow(max(w1, 0.0), 7.0);
+	max		$tmp228 w1 $const6 	%line{194} %argrw{"wrr"}
+	pow		W1 $tmp228 $const40 	%argrw{"wrr"}
+# vmtHexTile.osl:195
+#         W2 = pow(max(w2, 0.0), 7.0);
+	max		$tmp229 w2 $const6 	%line{195} %argrw{"wrr"}
+	pow		W2 $tmp229 $const40 	%argrw{"wrr"}
+# vmtHexTile.osl:197
+#     float sm = W0 + W1 + W2;
+	add		$tmp230 W0 W1 	%line{197} %argrw{"wrr"}
+	add		sm $tmp230 W2 	%argrw{"wrr"}
+# vmtHexTile.osl:198
+#     if (sm > 0.0) { W0 /= sm; W1 /= sm; W2 /= sm; }
+	gt		$tmp231 sm $const6 	%line{198} %argrw{"wrr"}
+	if		$tmp231 448 448 	%argrw{"r"}
+	div		W0 W0 sm 	%argrw{"wrr"}
+	div		W1 W1 sm 	%argrw{"wrr"}
+	div		W2 W2 sm 	%argrw{"wrr"}
+# vmtHexTile.osl:199
+#     vmt_bgain(tileBlend, W0, W1, W2);   // tile blend（境界のボケ/シャープ）
+	functioncall	$const41 499 	%line{199} %argrw{"r"}
+# vmtHexTile.osl:93
+#     if (tb == 0.5) return;
+	eq		$tmp232 tileBlend $const11 	%line{93} %argrw{"wrr"}
+	if		$tmp232 452 452 	%argrw{"r"}
+	return
+# vmtHexTile.osl:94
+#     float k = log(1.0 - tb) / log(0.5);
+	sub		$tmp234 $const5 tileBlend 	%line{94} %argrw{"wrr"}
+	log		$tmp233 $tmp234 	%argrw{"wr"}
+	log		$tmp235 $const11 	%argrw{"wr"}
+	div		___370_k $tmp233 $tmp235 	%argrw{"wrr"}
+# vmtHexTile.osl:95
+#     float g0 = vmt_gain(W0, k), g1 = vmt_gain(W1, k), g2 = vmt_gain(W2, k);
+	functioncall	$const42 468 	%line{95} %argrw{"r"}
+# vmtHexTile.osl:87
+#     return x < 0.5 ? 0.5 * pow(2.0 * x, k) : 1.0 - 0.5 * pow(2.0 * (1.0 - x), k);
+	lt		$tmp236 W0 $const11 	%line{87} %argrw{"wrr"}
+	if		$tmp236 462 467 	%argrw{"r"}
+	mul		$tmp238 $const7 W0 	%argrw{"wrr"}
+	pow		$tmp237 $tmp238 ___370_k 	%argrw{"wrr"}
+	mul		___370_g0 $const11 $tmp237 	%argrw{"wrr"}
+	sub		$tmp240 $const5 W0 	%argrw{"wrr"}
+	mul		$tmp241 $const7 $tmp240 	%argrw{"wrr"}
+	pow		$tmp239 $tmp241 ___370_k 	%argrw{"wrr"}
+	mul		$tmp242 $const11 $tmp239 	%argrw{"wrr"}
+	sub		___370_g0 $const5 $tmp242 	%argrw{"wrr"}
+	return
+# vmtHexTile.osl:95
+#     float g0 = vmt_gain(W0, k), g1 = vmt_gain(W1, k), g2 = vmt_gain(W2, k);
+	functioncall	$const42 480 	%line{95} %argrw{"r"}
+# vmtHexTile.osl:87
+#     return x < 0.5 ? 0.5 * pow(2.0 * x, k) : 1.0 - 0.5 * pow(2.0 * (1.0 - x), k);
+	lt		$tmp243 W1 $const11 	%line{87} %argrw{"wrr"}
+	if		$tmp243 474 479 	%argrw{"r"}
+	mul		$tmp245 $const7 W1 	%argrw{"wrr"}
+	pow		$tmp244 $tmp245 ___370_k 	%argrw{"wrr"}
+	mul		___370_g1 $const11 $tmp244 	%argrw{"wrr"}
+	sub		$tmp247 $const5 W1 	%argrw{"wrr"}
+	mul		$tmp248 $const7 $tmp247 	%argrw{"wrr"}
+	pow		$tmp246 $tmp248 ___370_k 	%argrw{"wrr"}
+	mul		$tmp249 $const11 $tmp246 	%argrw{"wrr"}
+	sub		___370_g1 $const5 $tmp249 	%argrw{"wrr"}
+	return
+# vmtHexTile.osl:95
+#     float g0 = vmt_gain(W0, k), g1 = vmt_gain(W1, k), g2 = vmt_gain(W2, k);
+	functioncall	$const42 492 	%line{95} %argrw{"r"}
+# vmtHexTile.osl:87
+#     return x < 0.5 ? 0.5 * pow(2.0 * x, k) : 1.0 - 0.5 * pow(2.0 * (1.0 - x), k);
+	lt		$tmp250 W2 $const11 	%line{87} %argrw{"wrr"}
+	if		$tmp250 486 491 	%argrw{"r"}
+	mul		$tmp252 $const7 W2 	%argrw{"wrr"}
+	pow		$tmp251 $tmp252 ___370_k 	%argrw{"wrr"}
+	mul		___370_g2 $const11 $tmp251 	%argrw{"wrr"}
+	sub		$tmp254 $const5 W2 	%argrw{"wrr"}
+	mul		$tmp255 $const7 $tmp254 	%argrw{"wrr"}
+	pow		$tmp253 $tmp255 ___370_k 	%argrw{"wrr"}
+	mul		$tmp256 $const11 $tmp253 	%argrw{"wrr"}
+	sub		___370_g2 $const5 $tmp256 	%argrw{"wrr"}
+	return
+# vmtHexTile.osl:96
+#     float s = g0 + g1 + g2;
+	add		$tmp257 ___370_g0 ___370_g1 	%line{96} %argrw{"wrr"}
+	add		___370_s $tmp257 ___370_g2 	%argrw{"wrr"}
+# vmtHexTile.osl:97
+#     if (s > 0.0) { W0 = g0 / s; W1 = g1 / s; W2 = g2 / s; }
+	gt		$tmp258 ___370_s $const6 	%line{97} %argrw{"wrr"}
+	if		$tmp258 499 499 	%argrw{"r"}
+	div		W0 ___370_g0 ___370_s 	%argrw{"wrr"}
+	div		W1 ___370_g1 ___370_s 	%argrw{"wrr"}
+	div		W2 ___370_g2 ___370_s 	%argrw{"wrr"}
+# vmtHexTile.osl:202
+#     string cm[8]  = { colorMap0, colorMap1, colorMap2, colorMap3,
+	aassign		cm $const27 colorMap0 	%line{202} %argrw{"wrr"}
+	aassign		cm $const43 colorMap1 	%argrw{"wrr"}
+	aassign		cm $const44 colorMap2 	%argrw{"wrr"}
+	aassign		cm $const45 colorMap3 	%argrw{"wrr"}
+	aassign		cm $const46 colorMap4 	%argrw{"wrr"}
+	aassign		cm $const47 colorMap5 	%argrw{"wrr"}
+	aassign		cm $const48 colorMap6 	%argrw{"wrr"}
+	aassign		cm $const49 colorMap7 	%argrw{"wrr"}
+# vmtHexTile.osl:204
+#     int    sg[8]  = { srgb0, srgb1, srgb2, srgb3, srgb4, srgb5, srgb6, srgb7 };
+	aassign		sg $const27 srgb0 	%line{204} %argrw{"wrr"}
+	aassign		sg $const43 srgb1 	%argrw{"wrr"}
+	aassign		sg $const44 srgb2 	%argrw{"wrr"}
+	aassign		sg $const45 srgb3 	%argrw{"wrr"}
+	aassign		sg $const46 srgb4 	%argrw{"wrr"}
+	aassign		sg $const47 srgb5 	%argrw{"wrr"}
+	aassign		sg $const48 srgb6 	%argrw{"wrr"}
+	aassign		sg $const49 srgb7 	%argrw{"wrr"}
+# vmtHexTile.osl:205
+#     color  oc[8]  = { 0, 0, 0, 0, 0, 0, 0, 0 };
+	assign		$tmp259 $const27 	%line{205} %argrw{"wr"}
+	aassign		oc $const27 $tmp259 	%argrw{"wrr"}
+	assign		$tmp260 $const27 	%argrw{"wr"}
+	aassign		oc $const43 $tmp260 	%argrw{"wrr"}
+	assign		$tmp261 $const27 	%argrw{"wr"}
+	aassign		oc $const44 $tmp261 	%argrw{"wrr"}
+	assign		$tmp262 $const27 	%argrw{"wr"}
+	aassign		oc $const45 $tmp262 	%argrw{"wrr"}
+	assign		$tmp263 $const27 	%argrw{"wr"}
+	aassign		oc $const46 $tmp263 	%argrw{"wrr"}
+	assign		$tmp264 $const27 	%argrw{"wr"}
+	aassign		oc $const47 $tmp264 	%argrw{"wrr"}
+	assign		$tmp265 $const27 	%argrw{"wr"}
+	aassign		oc $const48 $tmp265 	%argrw{"wrr"}
+	assign		$tmp266 $const27 	%argrw{"wr"}
+	aassign		oc $const49 $tmp266 	%argrw{"wrr"}
+# vmtHexTile.osl:206
+#     for (int i = 0; i < 8; i = i + 1) {
+	for		$tmp268 533 535 709 710 	%line{206} %argrw{"r"}
+	assign		___376_i $const27 	%argrw{"wr"}
+	lt		$tmp267 ___376_i $const50 	%argrw{"wrr"}
+	neq		$tmp268 $tmp267 $const27 	%argrw{"wrr"}
+# vmtHexTile.osl:207
+#         if (cm[i] != "") {
+	aref		$tmp269 cm ___376_i 	%line{207} %argrw{"wrr"}
+	neq		$tmp270 $tmp269 $const28 	%argrw{"wrr"}
+	if		$tmp270 709 709 	%argrw{"r"}
+# vmtHexTile.osl:208
+#             color c1 = vmt_smpD(cm[i], u1x, u1y, ca1, sa1, dStxDx, dStxDy, dStyDx, dStyDy);
+	aref		$tmp271 cm ___376_i 	%line{208} %argrw{"wrr"}
+	functioncall	$const29 562 	%argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp272 ca1 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp273 sa1 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp272 $tmp273 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp274 ca1 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp275 sa1 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp274 $tmp275 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp276 sa1 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp277 ca1 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp276 $tmp277 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp278 sa1 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp279 ca1 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp278 $tmp279 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 555 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp281 u1x 	%line{10} %argrw{"wr"}
+	sub		$tmp280 u1x $tmp281 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 558 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp283 u1y 	%line{10} %argrw{"wr"}
+	sub		$tmp282 u1y $tmp283 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp284 $const5 $tmp282 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp285 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp286 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___378_c1 $tmp271 $tmp280 $tmp284 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp285 $const34 $tmp286 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:209
+#             color c2 = vmt_smpD(cm[i], u2x, u2y, ca2, sa2, dStxDx, dStxDy, dStyDx, dStyDy);
+	aref		$tmp287 cm ___376_i 	%line{209} %argrw{"wrr"}
+	functioncall	$const29 586 	%argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp288 ca2 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp289 sa2 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp288 $tmp289 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp290 ca2 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp291 sa2 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp290 $tmp291 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp292 sa2 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp293 ca2 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp292 $tmp293 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp294 sa2 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp295 ca2 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp294 $tmp295 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 579 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp297 u2x 	%line{10} %argrw{"wr"}
+	sub		$tmp296 u2x $tmp297 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 582 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp299 u2y 	%line{10} %argrw{"wr"}
+	sub		$tmp298 u2y $tmp299 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp300 $const5 $tmp298 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp301 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp302 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___378_c2 $tmp287 $tmp296 $tmp300 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp301 $const34 $tmp302 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:210
+#             color c3 = vmt_smpD(cm[i], u3x, u3y, ca3, sa3, dStxDx, dStxDy, dStyDx, dStyDy);
+	aref		$tmp303 cm ___376_i 	%line{210} %argrw{"wrr"}
+	functioncall	$const29 610 	%argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp304 ca3 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp305 sa3 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp304 $tmp305 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp306 ca3 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp307 sa3 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp306 $tmp307 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp308 sa3 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp309 ca3 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp308 $tmp309 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp310 sa3 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp311 ca3 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp310 $tmp311 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 603 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp313 u3x 	%line{10} %argrw{"wr"}
+	sub		$tmp312 u3x $tmp313 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 606 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp315 u3y 	%line{10} %argrw{"wr"}
+	sub		$tmp314 u3y $tmp315 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp316 $const5 $tmp314 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp317 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp318 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___378_c3 $tmp303 $tmp312 $tmp316 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp317 $const34 $tmp318 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:211
+#             if (sg[i] != 0) { c1 = vmt_s2l(c1); c2 = vmt_s2l(c2); c3 = vmt_s2l(c3); }
+	aref		$tmp319 sg ___376_i 	%line{211} %argrw{"wrr"}
+	neq		$tmp320 $tmp319 $const27 	%argrw{"wrr"}
+	if		$tmp320 703 703 	%argrw{"r"}
+	functioncall	$const51 643 	%argrw{"r"}
+# vmtHexTile.osl:79
+#         c[0] <= 0.04045 ? c[0] / 12.92 : pow((c[0] + 0.055) / 1.055, 2.4),
+	compref		$tmp322 ___378_c1 $const27 	%line{79} %argrw{"wrr"}
+	le		$tmp323 $tmp322 $const52 	%argrw{"wrr"}
+	if		$tmp323 619 623 	%argrw{"r"}
+	compref		$tmp324 ___378_c1 $const27 	%argrw{"wrr"}
+	div		$tmp321 $tmp324 $const53 	%argrw{"wrr"}
+	compref		$tmp325 ___378_c1 $const27 	%argrw{"wrr"}
+	add		$tmp326 $tmp325 $const54 	%argrw{"wrr"}
+	div		$tmp327 $tmp326 $const55 	%argrw{"wrr"}
+	pow		$tmp321 $tmp327 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:80
+#         c[1] <= 0.04045 ? c[1] / 12.92 : pow((c[1] + 0.055) / 1.055, 2.4),
+	compref		$tmp329 ___378_c1 $const43 	%line{80} %argrw{"wrr"}
+	le		$tmp330 $tmp329 $const52 	%argrw{"wrr"}
+	if		$tmp330 628 632 	%argrw{"r"}
+	compref		$tmp331 ___378_c1 $const43 	%argrw{"wrr"}
+	div		$tmp328 $tmp331 $const53 	%argrw{"wrr"}
+	compref		$tmp332 ___378_c1 $const43 	%argrw{"wrr"}
+	add		$tmp333 $tmp332 $const54 	%argrw{"wrr"}
+	div		$tmp334 $tmp333 $const55 	%argrw{"wrr"}
+	pow		$tmp328 $tmp334 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:81
+#         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
+	compref		$tmp336 ___378_c1 $const44 	%line{81} %argrw{"wrr"}
+	le		$tmp337 $tmp336 $const52 	%argrw{"wrr"}
+	if		$tmp337 637 641 	%argrw{"r"}
+	compref		$tmp338 ___378_c1 $const44 	%argrw{"wrr"}
+	div		$tmp335 $tmp338 $const53 	%argrw{"wrr"}
+	compref		$tmp339 ___378_c1 $const44 	%argrw{"wrr"}
+	add		$tmp340 $tmp339 $const54 	%argrw{"wrr"}
+	div		$tmp341 $tmp340 $const55 	%argrw{"wrr"}
+	pow		$tmp335 $tmp341 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:78
+#     return color(
+	color		___378_c1 $tmp321 $tmp328 $tmp335 	%line{78} %argrw{"wrrr"}
+# vmtHexTile.osl:81
+#         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
+	return	%line{81}
+# vmtHexTile.osl:211
+#             if (sg[i] != 0) { c1 = vmt_s2l(c1); c2 = vmt_s2l(c2); c3 = vmt_s2l(c3); }
+	functioncall	$const51 673 	%line{211} %argrw{"r"}
+# vmtHexTile.osl:79
+#         c[0] <= 0.04045 ? c[0] / 12.92 : pow((c[0] + 0.055) / 1.055, 2.4),
+	compref		$tmp343 ___378_c2 $const27 	%line{79} %argrw{"wrr"}
+	le		$tmp344 $tmp343 $const52 	%argrw{"wrr"}
+	if		$tmp344 649 653 	%argrw{"r"}
+	compref		$tmp345 ___378_c2 $const27 	%argrw{"wrr"}
+	div		$tmp342 $tmp345 $const53 	%argrw{"wrr"}
+	compref		$tmp346 ___378_c2 $const27 	%argrw{"wrr"}
+	add		$tmp347 $tmp346 $const54 	%argrw{"wrr"}
+	div		$tmp348 $tmp347 $const55 	%argrw{"wrr"}
+	pow		$tmp342 $tmp348 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:80
+#         c[1] <= 0.04045 ? c[1] / 12.92 : pow((c[1] + 0.055) / 1.055, 2.4),
+	compref		$tmp350 ___378_c2 $const43 	%line{80} %argrw{"wrr"}
+	le		$tmp351 $tmp350 $const52 	%argrw{"wrr"}
+	if		$tmp351 658 662 	%argrw{"r"}
+	compref		$tmp352 ___378_c2 $const43 	%argrw{"wrr"}
+	div		$tmp349 $tmp352 $const53 	%argrw{"wrr"}
+	compref		$tmp353 ___378_c2 $const43 	%argrw{"wrr"}
+	add		$tmp354 $tmp353 $const54 	%argrw{"wrr"}
+	div		$tmp355 $tmp354 $const55 	%argrw{"wrr"}
+	pow		$tmp349 $tmp355 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:81
+#         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
+	compref		$tmp357 ___378_c2 $const44 	%line{81} %argrw{"wrr"}
+	le		$tmp358 $tmp357 $const52 	%argrw{"wrr"}
+	if		$tmp358 667 671 	%argrw{"r"}
+	compref		$tmp359 ___378_c2 $const44 	%argrw{"wrr"}
+	div		$tmp356 $tmp359 $const53 	%argrw{"wrr"}
+	compref		$tmp360 ___378_c2 $const44 	%argrw{"wrr"}
+	add		$tmp361 $tmp360 $const54 	%argrw{"wrr"}
+	div		$tmp362 $tmp361 $const55 	%argrw{"wrr"}
+	pow		$tmp356 $tmp362 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:78
+#     return color(
+	color		___378_c2 $tmp342 $tmp349 $tmp356 	%line{78} %argrw{"wrrr"}
+# vmtHexTile.osl:81
+#         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
+	return	%line{81}
+# vmtHexTile.osl:211
+#             if (sg[i] != 0) { c1 = vmt_s2l(c1); c2 = vmt_s2l(c2); c3 = vmt_s2l(c3); }
+	functioncall	$const51 703 	%line{211} %argrw{"r"}
+# vmtHexTile.osl:79
+#         c[0] <= 0.04045 ? c[0] / 12.92 : pow((c[0] + 0.055) / 1.055, 2.4),
+	compref		$tmp364 ___378_c3 $const27 	%line{79} %argrw{"wrr"}
+	le		$tmp365 $tmp364 $const52 	%argrw{"wrr"}
+	if		$tmp365 679 683 	%argrw{"r"}
+	compref		$tmp366 ___378_c3 $const27 	%argrw{"wrr"}
+	div		$tmp363 $tmp366 $const53 	%argrw{"wrr"}
+	compref		$tmp367 ___378_c3 $const27 	%argrw{"wrr"}
+	add		$tmp368 $tmp367 $const54 	%argrw{"wrr"}
+	div		$tmp369 $tmp368 $const55 	%argrw{"wrr"}
+	pow		$tmp363 $tmp369 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:80
+#         c[1] <= 0.04045 ? c[1] / 12.92 : pow((c[1] + 0.055) / 1.055, 2.4),
+	compref		$tmp371 ___378_c3 $const43 	%line{80} %argrw{"wrr"}
+	le		$tmp372 $tmp371 $const52 	%argrw{"wrr"}
+	if		$tmp372 688 692 	%argrw{"r"}
+	compref		$tmp373 ___378_c3 $const43 	%argrw{"wrr"}
+	div		$tmp370 $tmp373 $const53 	%argrw{"wrr"}
+	compref		$tmp374 ___378_c3 $const43 	%argrw{"wrr"}
+	add		$tmp375 $tmp374 $const54 	%argrw{"wrr"}
+	div		$tmp376 $tmp375 $const55 	%argrw{"wrr"}
+	pow		$tmp370 $tmp376 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:81
+#         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
+	compref		$tmp378 ___378_c3 $const44 	%line{81} %argrw{"wrr"}
+	le		$tmp379 $tmp378 $const52 	%argrw{"wrr"}
+	if		$tmp379 697 701 	%argrw{"r"}
+	compref		$tmp380 ___378_c3 $const44 	%argrw{"wrr"}
+	div		$tmp377 $tmp380 $const53 	%argrw{"wrr"}
+	compref		$tmp381 ___378_c3 $const44 	%argrw{"wrr"}
+	add		$tmp382 $tmp381 $const54 	%argrw{"wrr"}
+	div		$tmp383 $tmp382 $const55 	%argrw{"wrr"}
+	pow		$tmp377 $tmp383 $const56 	%argrw{"wrr"}
+# vmtHexTile.osl:78
+#     return color(
+	color		___378_c3 $tmp363 $tmp370 $tmp377 	%line{78} %argrw{"wrrr"}
+# vmtHexTile.osl:81
+#         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
+	return	%line{81}
+# vmtHexTile.osl:212
+#             oc[i] = W0 * c1 + W1 * c2 + W2 * c3;
+	mul		$tmp384 W0 ___378_c1 	%line{212} %argrw{"wrr"}
+	mul		$tmp385 W1 ___378_c2 	%argrw{"wrr"}
+	add		$tmp386 $tmp384 $tmp385 	%argrw{"wrr"}
+	mul		$tmp387 W2 ___378_c3 	%argrw{"wrr"}
+	add		$tmp388 $tmp386 $tmp387 	%argrw{"wrr"}
+	aassign		oc ___376_i $tmp388 	%argrw{"wrr"}
+# vmtHexTile.osl:206
+#     for (int i = 0; i < 8; i = i + 1) {
+	add		___376_i ___376_i $const43 	%line{206} %argrw{"wrr"}
+# vmtHexTile.osl:215
+#     outColor0 = oc[0]; outColor1 = oc[1]; outColor2 = oc[2]; outColor3 = oc[3];
+	aref		outColor0 oc $const27 	%line{215} %argrw{"wrr"}
+	aref		outColor1 oc $const43 	%argrw{"wrr"}
+	aref		outColor2 oc $const44 	%argrw{"wrr"}
+	aref		outColor3 oc $const45 	%argrw{"wrr"}
+# vmtHexTile.osl:216
+#     outColor4 = oc[4]; outColor5 = oc[5]; outColor6 = oc[6]; outColor7 = oc[7];
+	aref		outColor4 oc $const46 	%line{216} %argrw{"wrr"}
+	aref		outColor5 oc $const47 	%argrw{"wrr"}
+	aref		outColor6 oc $const48 	%argrw{"wrr"}
+	aref		outColor7 oc $const49 	%argrw{"wrr"}
+# vmtHexTile.osl:219
+#     outHeight = useHeight ? (W0 * h1 + W1 * h2 + W2 * h3) : 0.0;
+	if		useHeight 724 725 	%line{219} %argrw{"r"}
+	mul		$tmp389 W0 h1 	%argrw{"wrr"}
+	mul		$tmp390 W1 h2 	%argrw{"wrr"}
+	add		$tmp391 $tmp389 $tmp390 	%argrw{"wrr"}
+	mul		$tmp392 W2 h3 	%argrw{"wrr"}
+	add		outHeight $tmp391 $tmp392 	%argrw{"wrr"}
+	assign		outHeight $const6 	%argrw{"wr"}
+# vmtHexTile.osl:222
+#     if (normalMap != "") {
+	neq		$tmp393 normalMap $const28 	%line{222} %argrw{"wrr"}
+	if		$tmp393 913 913 	%argrw{"r"}
+# vmtHexTile.osl:223
+#         float fy = (normalFlipY != 0) ? -1.0 : 1.0;
+	neq		$tmp394 normalFlipY $const27 	%line{223} %argrw{"wrr"}
+	if		$tmp394 730 731 	%argrw{"r"}
+	assign		___380_fy $const57 	%argrw{"wr"}
+	assign		___380_fy $const5 	%argrw{"wr"}
+# vmtHexTile.osl:224
+#         color n1c = vmt_smpD(normalMap, u1x, u1y, ca1, sa1, dStxDx, dStxDy, dStyDx, dStyDy);
+	functioncall	$const29 754 	%line{224} %argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp395 ca1 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp396 sa1 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp395 $tmp396 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp397 ca1 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp398 sa1 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp397 $tmp398 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp399 sa1 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp400 ca1 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp399 $tmp400 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp401 sa1 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp402 ca1 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp401 $tmp402 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 747 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp404 u1x 	%line{10} %argrw{"wr"}
+	sub		$tmp403 u1x $tmp404 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 750 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp406 u1y 	%line{10} %argrw{"wr"}
+	sub		$tmp405 u1y $tmp406 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp407 $const5 $tmp405 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp408 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp409 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___380_n1c normalMap $tmp403 $tmp407 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp408 $const34 $tmp409 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:225
+#         color n2c = vmt_smpD(normalMap, u2x, u2y, ca2, sa2, dStxDx, dStxDy, dStyDx, dStyDy);
+	functioncall	$const29 777 	%line{225} %argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp410 ca2 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp411 sa2 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp410 $tmp411 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp412 ca2 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp413 sa2 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp412 $tmp413 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp414 sa2 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp415 ca2 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp414 $tmp415 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp416 sa2 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp417 ca2 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp416 $tmp417 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 770 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp419 u2x 	%line{10} %argrw{"wr"}
+	sub		$tmp418 u2x $tmp419 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 773 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp421 u2y 	%line{10} %argrw{"wr"}
+	sub		$tmp420 u2y $tmp421 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp422 $const5 $tmp420 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp423 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp424 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___380_n2c normalMap $tmp418 $tmp422 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp423 $const34 $tmp424 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:226
+#         color n3c = vmt_smpD(normalMap, u3x, u3y, ca3, sa3, dStxDx, dStxDy, dStyDx, dStyDy);
+	functioncall	$const29 800 	%line{226} %argrw{"r"}
+# vmtHexTile.osl:107
+#     float duDx = ca * dStxDx - sa * dStyDx;
+	mul		$tmp425 ca3 dStxDx 	%line{107} %argrw{"wrr"}
+	mul		$tmp426 sa3 dStyDx 	%argrw{"wrr"}
+	sub		___372_duDx $tmp425 $tmp426 	%argrw{"wrr"}
+# vmtHexTile.osl:108
+#     float duDy = ca * dStxDy - sa * dStyDy;
+	mul		$tmp427 ca3 dStxDy 	%line{108} %argrw{"wrr"}
+	mul		$tmp428 sa3 dStyDy 	%argrw{"wrr"}
+	sub		___372_duDy $tmp427 $tmp428 	%argrw{"wrr"}
+# vmtHexTile.osl:109
+#     float dvDx = sa * dStxDx + ca * dStyDx;
+	mul		$tmp429 sa3 dStxDx 	%line{109} %argrw{"wrr"}
+	mul		$tmp430 ca3 dStyDx 	%argrw{"wrr"}
+	add		___372_dvDx $tmp429 $tmp430 	%argrw{"wrr"}
+# vmtHexTile.osl:110
+#     float dvDy = sa * dStxDy + ca * dStyDy;
+	mul		$tmp431 sa3 dStxDy 	%line{110} %argrw{"wrr"}
+	mul		$tmp432 ca3 dStyDy 	%argrw{"wrr"}
+	add		___372_dvDy $tmp431 $tmp432 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 793 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp434 u3x 	%line{10} %argrw{"wr"}
+	sub		$tmp433 u3x $tmp434 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	functioncall	$const30 796 	%line{111} %argrw{"r"}
+# vmtHexTile.osl:10
+# float vmtfrac(float x) { return x - floor(x); }
+	floor		$tmp436 u3y 	%line{10} %argrw{"wr"}
+	sub		$tmp435 u3y $tmp436 	%argrw{"wrr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	sub		$tmp437 $const5 $tmp435 	%line{111} %argrw{"wrr"}
+# vmtHexTile.osl:112
+#         "dsdx", duDx, "dsdy", duDy, "dtdx", -dvDx, "dtdy", -dvDy,
+	neg		$tmp438 ___372_dvDx 	%line{112} %argrw{"wr"}
+	neg		$tmp439 ___372_dvDy 	%argrw{"wr"}
+# vmtHexTile.osl:111
+#     return (color) texture(fn, vmtfrac(ux), 1.0 - vmtfrac(uy),
+	texture		___380_n3c normalMap $tmp433 $tmp437 $const31 ___372_duDx $const32 ___372_duDy $const33 $tmp438 $const34 $tmp439 $const35 $const36 	%line{111} %argrw{"wrrrrrrrrrrrrr"} %argderivs{2,3}
+# vmtHexTile.osl:227
+#         vector N1 = vector(n1c[0] * 2 - 1, (n1c[1] * 2 - 1) * fy, n1c[2] * 2 - 1);
+	compref		$tmp440 ___380_n1c $const27 	%line{227} %argrw{"wrr"}
+	mul		$tmp441 $tmp440 $const7 	%argrw{"wrr"}
+	sub		$tmp442 $tmp441 $const5 	%argrw{"wrr"}
+	compref		$tmp443 ___380_n1c $const43 	%argrw{"wrr"}
+	mul		$tmp444 $tmp443 $const7 	%argrw{"wrr"}
+	sub		$tmp445 $tmp444 $const5 	%argrw{"wrr"}
+	mul		$tmp446 $tmp445 ___380_fy 	%argrw{"wrr"}
+	compref		$tmp447 ___380_n1c $const44 	%argrw{"wrr"}
+	mul		$tmp448 $tmp447 $const7 	%argrw{"wrr"}
+	sub		$tmp449 $tmp448 $const5 	%argrw{"wrr"}
+	vector		___380_N1 $tmp442 $tmp446 $tmp449 	%argrw{"wrrr"}
+# vmtHexTile.osl:228
+#         vector N2 = vector(n2c[0] * 2 - 1, (n2c[1] * 2 - 1) * fy, n2c[2] * 2 - 1);
+	compref		$tmp450 ___380_n2c $const27 	%line{228} %argrw{"wrr"}
+	mul		$tmp451 $tmp450 $const7 	%argrw{"wrr"}
+	sub		$tmp452 $tmp451 $const5 	%argrw{"wrr"}
+	compref		$tmp453 ___380_n2c $const43 	%argrw{"wrr"}
+	mul		$tmp454 $tmp453 $const7 	%argrw{"wrr"}
+	sub		$tmp455 $tmp454 $const5 	%argrw{"wrr"}
+	mul		$tmp456 $tmp455 ___380_fy 	%argrw{"wrr"}
+	compref		$tmp457 ___380_n2c $const44 	%argrw{"wrr"}
+	mul		$tmp458 $tmp457 $const7 	%argrw{"wrr"}
+	sub		$tmp459 $tmp458 $const5 	%argrw{"wrr"}
+	vector		___380_N2 $tmp452 $tmp456 $tmp459 	%argrw{"wrrr"}
+# vmtHexTile.osl:229
+#         vector N3 = vector(n3c[0] * 2 - 1, (n3c[1] * 2 - 1) * fy, n3c[2] * 2 - 1);
+	compref		$tmp460 ___380_n3c $const27 	%line{229} %argrw{"wrr"}
+	mul		$tmp461 $tmp460 $const7 	%argrw{"wrr"}
+	sub		$tmp462 $tmp461 $const5 	%argrw{"wrr"}
+	compref		$tmp463 ___380_n3c $const43 	%argrw{"wrr"}
+	mul		$tmp464 $tmp463 $const7 	%argrw{"wrr"}
+	sub		$tmp465 $tmp464 $const5 	%argrw{"wrr"}
+	mul		$tmp466 $tmp465 ___380_fy 	%argrw{"wrr"}
+	compref		$tmp467 ___380_n3c $const44 	%argrw{"wrr"}
+	mul		$tmp468 $tmp467 $const7 	%argrw{"wrr"}
+	sub		$tmp469 $tmp468 $const5 	%argrw{"wrr"}
+	vector		___380_N3 $tmp462 $tmp466 $tmp469 	%argrw{"wrrr"}
+# vmtHexTile.osl:231
+#         N1 = vector(ca1 * N1[0] - sa1 * N1[1], sa1 * N1[0] + ca1 * N1[1], N1[2]);
+	compref		$tmp470 ___380_N1 $const27 	%line{231} %argrw{"wrr"}
+	mul		$tmp471 ca1 $tmp470 	%argrw{"wrr"}
+	compref		$tmp472 ___380_N1 $const43 	%argrw{"wrr"}
+	mul		$tmp473 sa1 $tmp472 	%argrw{"wrr"}
+	sub		$tmp474 $tmp471 $tmp473 	%argrw{"wrr"}
+	compref		$tmp475 ___380_N1 $const27 	%argrw{"wrr"}
+	mul		$tmp476 sa1 $tmp475 	%argrw{"wrr"}
+	compref		$tmp477 ___380_N1 $const43 	%argrw{"wrr"}
+	mul		$tmp478 ca1 $tmp477 	%argrw{"wrr"}
+	add		$tmp479 $tmp476 $tmp478 	%argrw{"wrr"}
+	compref		$tmp480 ___380_N1 $const44 	%argrw{"wrr"}
+	vector		___380_N1 $tmp474 $tmp479 $tmp480 	%argrw{"wrrr"}
+# vmtHexTile.osl:232
+#         N2 = vector(ca2 * N2[0] - sa2 * N2[1], sa2 * N2[0] + ca2 * N2[1], N2[2]);
+	compref		$tmp481 ___380_N2 $const27 	%line{232} %argrw{"wrr"}
+	mul		$tmp482 ca2 $tmp481 	%argrw{"wrr"}
+	compref		$tmp483 ___380_N2 $const43 	%argrw{"wrr"}
+	mul		$tmp484 sa2 $tmp483 	%argrw{"wrr"}
+	sub		$tmp485 $tmp482 $tmp484 	%argrw{"wrr"}
+	compref		$tmp486 ___380_N2 $const27 	%argrw{"wrr"}
+	mul		$tmp487 sa2 $tmp486 	%argrw{"wrr"}
+	compref		$tmp488 ___380_N2 $const43 	%argrw{"wrr"}
+	mul		$tmp489 ca2 $tmp488 	%argrw{"wrr"}
+	add		$tmp490 $tmp487 $tmp489 	%argrw{"wrr"}
+	compref		$tmp491 ___380_N2 $const44 	%argrw{"wrr"}
+	vector		___380_N2 $tmp485 $tmp490 $tmp491 	%argrw{"wrrr"}
+# vmtHexTile.osl:233
+#         N3 = vector(ca3 * N3[0] - sa3 * N3[1], sa3 * N3[0] + ca3 * N3[1], N3[2]);
+	compref		$tmp492 ___380_N3 $const27 	%line{233} %argrw{"wrr"}
+	mul		$tmp493 ca3 $tmp492 	%argrw{"wrr"}
+	compref		$tmp494 ___380_N3 $const43 	%argrw{"wrr"}
+	mul		$tmp495 sa3 $tmp494 	%argrw{"wrr"}
+	sub		$tmp496 $tmp493 $tmp495 	%argrw{"wrr"}
+	compref		$tmp497 ___380_N3 $const27 	%argrw{"wrr"}
+	mul		$tmp498 sa3 $tmp497 	%argrw{"wrr"}
+	compref		$tmp499 ___380_N3 $const43 	%argrw{"wrr"}
+	mul		$tmp500 ca3 $tmp499 	%argrw{"wrr"}
+	add		$tmp501 $tmp498 $tmp500 	%argrw{"wrr"}
+	compref		$tmp502 ___380_N3 $const44 	%argrw{"wrr"}
+	vector		___380_N3 $tmp496 $tmp501 $tmp502 	%argrw{"wrrr"}
+# vmtHexTile.osl:234
+#         float g1x = -N1[0] / max(N1[2], 0.001), g1y = -N1[1] / max(N1[2], 0.001);
+	compref		$tmp503 ___380_N1 $const27 	%line{234} %argrw{"wrr"}
+	neg		$tmp504 $tmp503 	%argrw{"wr"}
+	compref		$tmp506 ___380_N1 $const44 	%argrw{"wrr"}
+	max		$tmp505 $tmp506 $const58 	%argrw{"wrr"}
+	div		___380_g1x $tmp504 $tmp505 	%argrw{"wrr"}
+	compref		$tmp507 ___380_N1 $const43 	%argrw{"wrr"}
+	neg		$tmp508 $tmp507 	%argrw{"wr"}
+	compref		$tmp510 ___380_N1 $const44 	%argrw{"wrr"}
+	max		$tmp509 $tmp510 $const58 	%argrw{"wrr"}
+	div		___380_g1y $tmp508 $tmp509 	%argrw{"wrr"}
+# vmtHexTile.osl:235
+#         float g2x = -N2[0] / max(N2[2], 0.001), g2y = -N2[1] / max(N2[2], 0.001);
+	compref		$tmp511 ___380_N2 $const27 	%line{235} %argrw{"wrr"}
+	neg		$tmp512 $tmp511 	%argrw{"wr"}
+	compref		$tmp514 ___380_N2 $const44 	%argrw{"wrr"}
+	max		$tmp513 $tmp514 $const58 	%argrw{"wrr"}
+	div		___380_g2x $tmp512 $tmp513 	%argrw{"wrr"}
+	compref		$tmp515 ___380_N2 $const43 	%argrw{"wrr"}
+	neg		$tmp516 $tmp515 	%argrw{"wr"}
+	compref		$tmp518 ___380_N2 $const44 	%argrw{"wrr"}
+	max		$tmp517 $tmp518 $const58 	%argrw{"wrr"}
+	div		___380_g2y $tmp516 $tmp517 	%argrw{"wrr"}
+# vmtHexTile.osl:236
+#         float g3x = -N3[0] / max(N3[2], 0.001), g3y = -N3[1] / max(N3[2], 0.001);
+	compref		$tmp519 ___380_N3 $const27 	%line{236} %argrw{"wrr"}
+	neg		$tmp520 $tmp519 	%argrw{"wr"}
+	compref		$tmp522 ___380_N3 $const44 	%argrw{"wrr"}
+	max		$tmp521 $tmp522 $const58 	%argrw{"wrr"}
+	div		___380_g3x $tmp520 $tmp521 	%argrw{"wrr"}
+	compref		$tmp523 ___380_N3 $const43 	%argrw{"wrr"}
+	neg		$tmp524 $tmp523 	%argrw{"wr"}
+	compref		$tmp526 ___380_N3 $const44 	%argrw{"wrr"}
+	max		$tmp525 $tmp526 $const58 	%argrw{"wrr"}
+	div		___380_g3y $tmp524 $tmp525 	%argrw{"wrr"}
+# vmtHexTile.osl:237
+#         float Gx = W0 * g1x + W1 * g2x + W2 * g3x;
+	mul		$tmp527 W0 ___380_g1x 	%line{237} %argrw{"wrr"}
+	mul		$tmp528 W1 ___380_g2x 	%argrw{"wrr"}
+	add		$tmp529 $tmp527 $tmp528 	%argrw{"wrr"}
+	mul		$tmp530 W2 ___380_g3x 	%argrw{"wrr"}
+	add		___380_Gx $tmp529 $tmp530 	%argrw{"wrr"}
+# vmtHexTile.osl:238
+#         float Gy = W0 * g1y + W1 * g2y + W2 * g3y;
+	mul		$tmp531 W0 ___380_g1y 	%line{238} %argrw{"wrr"}
+	mul		$tmp532 W1 ___380_g2y 	%argrw{"wrr"}
+	add		$tmp533 $tmp531 $tmp532 	%argrw{"wrr"}
+	mul		$tmp534 W2 ___380_g3y 	%argrw{"wrr"}
+	add		___380_Gy $tmp533 $tmp534 	%argrw{"wrr"}
+# vmtHexTile.osl:239
+#         outNormal = (normal) normalize(vector(-Gx, -Gy, 1.0));
+	neg		$tmp536 ___380_Gx 	%line{239} %argrw{"wr"}
+	neg		$tmp537 ___380_Gy 	%argrw{"wr"}
+	vector		$tmp535 $tmp536 $tmp537 $const5 	%argrw{"wrrr"}
+	normalize	outNormal $tmp535 	%argrw{"wr"}
+	end

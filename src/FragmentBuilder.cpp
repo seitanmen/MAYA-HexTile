@@ -642,7 +642,9 @@ static std::string hlslHelpers(bool useHeight, bool useNormal)
 "void vmt_rot(float2 ix,float rs,out float ca,out float sa){const float PI=3.14159265,TAU=6.28318531;float a=abs(ix.x*ix.y)+abs(ix.x+ix.y)+PI;a=fmod(a,TAU);if(a<0.0)a+=TAU;if(a>PI)a-=TAU;a*=rs;ca=cos(a);sa=sin(a);}\n"
 "float2 vmt_tuv(float2 st,float2 v,float rs){float2 c=vmt_cen(v);float ca,sa;vmt_rot(v,rs,ca,sa);float2 h=vmt_hash(v);float2 d=st-c;return float2(ca*d.x-sa*d.y,sa*d.x+ca*d.y)+c+h;}\n"
 "float3 vmt_smp(Texture2D m,sampler s,float2 uv){float2 f=frac(uv);return m.SampleGrad(s,float2(f.x,1.0-f.y),ddx(uv),ddy(uv)).rgb;}\n"
-"float3 vmt_s2l(float3 c){return float3(c.x<=0.04045?c.x/12.92:pow((c.x+0.055)/1.055,2.4),c.y<=0.04045?c.y/12.92:pow((c.y+0.055)/1.055,2.4),c.z<=0.04045?c.z/12.92:pow((c.z+0.055)/1.055,2.4));}\n";
+"float3 vmt_s2l(float3 c){return float3(c.x<=0.04045?c.x/12.92:pow((c.x+0.055)/1.055,2.4),c.y<=0.04045?c.y/12.92:pow((c.y+0.055)/1.055,2.4),c.z<=0.04045?c.z/12.92:pow((c.z+0.055)/1.055,2.4));}\n"
+"float vmt_gain(float x,float k){return x<0.5?0.5*pow(2.0*x,k):1.0-0.5*pow(2.0*(1.0-x),k);}\n"
+"float3 vmt_bgain(float3 W,float tb){if(tb==0.5)return W;float k=log(1.0-tb)/log(0.5);float3 G=float3(vmt_gain(W.x,k),vmt_gain(W.y,k),vmt_gain(W.z,k));float s=G.x+G.y+G.z;return (s>0.0)?G/s:W;}\n";
     if (useHeight) h +=
 "float vmt_smpA(Texture2D m,sampler s,float2 uv){float2 f=frac(uv);return m.SampleGrad(s,float2(f.x,1.0-f.y),ddx(uv),ddy(uv)).r;}\n"
 "float vmt_sth(float a,float th,float dl){dl=max(dl,0.0001);return clamp((a-th+dl)/dl,0.0,1.0);}\n"
@@ -661,7 +663,9 @@ static std::string glslHelpers(bool useHeight, bool useNormal)
 "void vmt_rot(vec2 ix,float rs,out float ca,out float sa){const float PI=3.14159265,TAU=6.28318531;float a=abs(ix.x*ix.y)+abs(ix.x+ix.y)+PI;a=mod(a,TAU);if(a>PI)a-=TAU;a*=rs;ca=cos(a);sa=sin(a);}\n"
 "vec2 vmt_tuv(vec2 st,vec2 v,float rs){vec2 c=vmt_cen(v);float ca,sa;vmt_rot(v,rs,ca,sa);vec2 h=vmt_hash(v);vec2 d=st-c;return vec2(ca*d.x-sa*d.y,sa*d.x+ca*d.y)+c+h;}\n"
 "vec3 vmt_smp(sampler2D m,vec2 uv){vec2 f=fract(uv);return textureGrad(m,vec2(f.x,1.0-f.y),dFdx(uv),dFdy(uv)).rgb;}\n"
-"vec3 vmt_s2l(vec3 c){return mix(c/12.92,pow((c+0.055)/1.055,vec3(2.4)),step(vec3(0.04045),c));}\n";
+"vec3 vmt_s2l(vec3 c){return mix(c/12.92,pow((c+0.055)/1.055,vec3(2.4)),step(vec3(0.04045),c));}\n"
+"float vmt_gain(float x,float k){return x<0.5?0.5*pow(2.0*x,k):1.0-0.5*pow(2.0*(1.0-x),k);}\n"
+"vec3 vmt_bgain(vec3 W,float tb){if(tb==0.5)return W;float k=log(1.0-tb)/log(0.5);vec3 G=vec3(vmt_gain(W.x,k),vmt_gain(W.y,k),vmt_gain(W.z,k));float s=G.x+G.y+G.z;return (s>0.0)?G/s:W;}\n";
     if (useHeight) h +=
 "float vmt_smpA(sampler2D m,vec2 uv){vec2 f=fract(uv);return textureGrad(m,vec2(f.x,1.0-f.y),dFdx(uv),dFdy(uv)).r;}\n"
 "float vmt_sth(float a,float th,float dl){dl=max(dl,0.0001);return clamp((a-th+dl)/dl,0.0,1.0);}\n"
@@ -729,7 +733,7 @@ MString buildDynLeafXML(const MString& implName, unsigned connMask, unsigned srg
 
     // ---- HLSL ----
     std::ostringstream hSig;
-    hSig << "float2 uvCoord, float uvScale, float rotAmt";
+    hSig << "float2 uvCoord, float uvScale, float rotAmt, float tileBlend";
     for (int i = 0; i < kFixedColorSlots; ++i) if (conn(i)) hSig << ", Texture2D map" << i << ", sampler map" << i << "Sampler";
     if (useHeight) hSig << ", float heightWeight, float heightDelta, Texture2D mapH, sampler mapHSampler";
     if (useNormal) hSig << ", Texture2D mapNrm, sampler mapNrmSampler";
@@ -758,7 +762,9 @@ MString buildDynLeafXML(const MString& implName, unsigned connMask, unsigned srg
     hb << "    float2 st = uvCoord*uvScale;\n";
     hb << "    float3 w; float2 v1,v2,v3; vmt_tri(st,w,v1,v2,v3);\n";
     hb << "    float2 u1=vmt_tuv(st,v1,rotAmt), u2=vmt_tuv(st,v2,rotAmt), u3=vmt_tuv(st,v3,rotAmt);\n";
-    hb << hW << hNrm;
+    hb << hW;
+    hb << "    W = vmt_bgain(W, tileBlend);\n"; // tile blend（境界のボケ/シャープ）
+    hb << hNrm;
     hb << "    " << sn << " o;\n";
     for (int i = 0; i < kFixedColorSlots; ++i) {
         if (conn(i)) {
@@ -778,7 +784,7 @@ MString buildDynLeafXML(const MString& implName, unsigned connMask, unsigned srg
 
     // ---- GLSL ----
     std::ostringstream gSig;
-    gSig << "vec2 uvCoord, float uvScale, float rotAmt";
+    gSig << "vec2 uvCoord, float uvScale, float rotAmt, float tileBlend";
     for (int i = 0; i < kFixedColorSlots; ++i) if (conn(i)) gSig << ", sampler2D map" << i;
     if (useHeight) gSig << ", float heightWeight, float heightDelta, sampler2D mapH";
     if (useNormal) gSig << ", sampler2D mapNrm";
@@ -807,7 +813,9 @@ MString buildDynLeafXML(const MString& implName, unsigned connMask, unsigned srg
     gb << "    vec2 st = uvCoord*uvScale;\n";
     gb << "    vec3 w; vec2 v1,v2,v3; vmt_tri(st,w,v1,v2,v3);\n";
     gb << "    vec2 u1=vmt_tuv(st,v1,rotAmt), u2=vmt_tuv(st,v2,rotAmt), u3=vmt_tuv(st,v3,rotAmt);\n";
-    gb << gW << gNrm;
+    gb << gW;
+    gb << "    W = vmt_bgain(W, tileBlend);\n";
+    gb << gNrm;
     gb << "    " << sn << " o;\n";
     for (int i = 0; i < kFixedColorSlots; ++i) {
         if (conn(i)) {
@@ -831,7 +839,7 @@ MString buildDynLeafXML(const MString& implName, unsigned connMask, unsigned srg
     xml << "  <description><![CDATA[VMT hex tiling (8 fixed slots)]]></description>\n";
     xml << "  <properties>\n";
     xml << "    <float2 name=\"uvCoord\" semantic=\"mayaUvCoordSemantic\" flags=\"varyingInputParam\"/>\n";
-    xml << "    <float name=\"uvScale\"/>\n    <float name=\"rotAmt\"/>\n";
+    xml << "    <float name=\"uvScale\"/>\n    <float name=\"rotAmt\"/>\n    <float name=\"tileBlend\"/>\n";
     for (int i = 0; i < kFixedColorSlots; ++i) if (conn(i)) {
         xml << "    <texture2 name=\"map" << i << "\"/>\n    <sampler name=\"map" << i << "Sampler\"/>\n";
     }
@@ -869,6 +877,7 @@ MString buildDynGraphXML(const MString& graphName, const MString& implName, unsi
     xml << "  <properties>\n";
     xml << "    <float2 name=\"uvCoord\" ref=\"" << im << ".uvCoord\" semantic=\"mayaUvCoordSemantic\" flags=\"varyingInputParam\"/>\n";
     xml << "    <float name=\"uvScale\" ref=\"" << im << ".uvScale\"/>\n    <float name=\"rotAmt\" ref=\"" << im << ".rotAmt\"/>\n";
+    xml << "    <float name=\"tileBlend\" ref=\"" << im << ".tileBlend\"/>\n";
     for (int i = 0; i < kFixedColorSlots; ++i) if (conn(i)) {
         xml << "    <texture2 name=\"map" << i << "\" ref=\"" << im << ".map" << i << "\"/>\n";
         xml << "    <sampler name=\"map" << i << "Sampler\" ref=\"" << im << ".map" << i << "Sampler\"/>\n";

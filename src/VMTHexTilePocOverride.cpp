@@ -160,6 +160,7 @@ void VMTHexTilePocOverride::getCustomMappings(
     // スカラ: uvScale←tileScale, rotAmt←rotStrength（rebuild で反映）
     mappings.append(MAttributeParameterMapping("uvScale", "tileScale",   true, true));
     mappings.append(MAttributeParameterMapping("rotAmt",  "rotStrength", true, true));
+    mappings.append(MAttributeParameterMapping("tileBlend", "tileBlend", true, true));
     // 各カラースロット: map{i} ← colorMap{i}（接続スロットのみ。実体は updateShader でバインド）
     for (int i = 0; i < vmt::kFixedColorSlots; ++i) if (fConnMask & (1u << i)) {
         std::ostringstream pn; pn << "map" << i;
@@ -186,6 +187,7 @@ bool VMTHexTilePocOverride::valueChangeRequiresFragmentRebuild(const MPlug* plug
             if (attr == VMTHexTilePoc::aColorMap[i]) return true;
         if (attr == VMTHexTilePoc::aTileScale ||
             attr == VMTHexTilePoc::aRotStrength ||
+            attr == VMTHexTilePoc::aTileBlend ||
             attr == VMTHexTilePoc::aHeightMap ||
             attr == VMTHexTilePoc::aHeightWeight ||
             attr == VMTHexTilePoc::aHeightDelta ||

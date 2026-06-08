@@ -76,6 +76,19 @@ color vmt_s2l(color c)
         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
 }
 
+float vmt_gain(float x, float k)
+{
+    return x < 0.5 ? 0.5 * pow(2.0 * x, k) : 1.0 - 0.5 * pow(2.0 * (1.0 - x), k);
+}
+void vmt_bgain(float tb, output float W0, output float W1, output float W2)
+{
+    if (tb == 0.5) return;
+    float k = log(1.0 - tb) / log(0.5);
+    float g0 = vmt_gain(W0, k), g1 = vmt_gain(W1, k), g2 = vmt_gain(W2, k);
+    float s = g0 + g1 + g2;
+    if (s > 0.0) { W0 = g0 / s; W1 = g1 / s; W2 = g2 / s; }
+}
+
 // 明示フットプリント付きサンプル（境界の点線=ミップ不連続を回避）
 color vmt_smpD(string fn, float ux, float uy, float ca, float sa,
                float dStxDx, float dStxDy, float dStyDx, float dStyDy)
@@ -96,6 +109,7 @@ shader vmtHexTileOne
     float  uvV = v,
     float  tileScale   = 4.0,
     float  rotStrength = 0.5,
+    float  tileBlend   = 0.5,
     string colorMap = "",
     int    srgb = 1,
     output color outColor = 0
@@ -124,6 +138,7 @@ shader vmtHexTileOne
     float W2 = pow(max(w2, 0.0), 7.0);
     float sm = W0 + W1 + W2;
     if (sm > 0.0) { W0 /= sm; W1 /= sm; W2 /= sm; }
+    vmt_bgain(tileBlend, W0, W1, W2);
 
     color result = color(0);
     if (colorMap != "") {

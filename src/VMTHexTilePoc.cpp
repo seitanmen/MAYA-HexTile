@@ -28,6 +28,7 @@ const MString VMTHexTilePoc::drawClassification("drawdb/shader/texture/2d/VMTHex
 MObject VMTHexTilePoc::aColorMap[VMTHexTilePoc::kSlots];
 MObject VMTHexTilePoc::aTileScale;
 MObject VMTHexTilePoc::aRotStrength;
+MObject VMTHexTilePoc::aTileBlend;
 MObject VMTHexTilePoc::aHeightMap;
 MObject VMTHexTilePoc::aHeightWeight;
 MObject VMTHexTilePoc::aHeightDelta;
@@ -74,6 +75,10 @@ MStatus VMTHexTilePoc::initialize()
 
     aRotStrength = nAttr.create("rotStrength", "rot", MFnNumericData::kFloat, 0.5, &st);
     nAttr.setMin(0.0); nAttr.setMax(1.0); nAttr.setKeyable(true);
+
+    // tileBlend: 境界のボケ/シャープ。0.5=無調整, <0.5=ボケ, >0.5=シャープ
+    aTileBlend = nAttr.create("tileBlend", "tbl", MFnNumericData::kFloat, 0.5, &st);
+    nAttr.setMin(0.01); nAttr.setMax(0.99); nAttr.setKeyable(true);
 
     // Height/displacement 入力（接続されると高さベースのブレンドに切替）
     aHeightMap = nAttr.createColor("heightMap", "hm", &st);
@@ -153,6 +158,7 @@ MStatus VMTHexTilePoc::initialize()
     for (int i = 0; i < kSlots; ++i) addAttribute(aColorMap[i]);
     addAttribute(aTileScale);
     addAttribute(aRotStrength);
+    addAttribute(aTileBlend);
     addAttribute(aHeightMap);
     addAttribute(aHeightWeight);
     addAttribute(aHeightDelta);
@@ -171,17 +177,20 @@ MStatus VMTHexTilePoc::initialize()
         attributeAffects(aColorMap[i], aOutColor[i]);
         attributeAffects(aTileScale,   aOutColor[i]);
         attributeAffects(aRotStrength, aOutColor[i]);
+        attributeAffects(aTileBlend,   aOutColor[i]);
         attributeAffects(aUvCoord,     aOutColor[i]);
         attributeAffects(aColorMap[i], aOutColorStd);
     }
     attributeAffects(aUvCoord, aOutColorStd);
     attributeAffects(aUvCoord, aOutAlpha);
     attributeAffects(aHeightMap, aOutHeight);
+    attributeAffects(aTileBlend, aOutHeight);
     attributeAffects(aUvCoord, aOutHeight);
     attributeAffects(aNormalMap, aOutNormal);
     attributeAffects(aNormalConvention, aOutNormal);
     attributeAffects(aTileScale, aOutNormal);
     attributeAffects(aRotStrength, aOutNormal);
+    attributeAffects(aTileBlend, aOutNormal);
     attributeAffects(aUvCoord, aOutNormal);
 
     return MS::kSuccess;

@@ -18,6 +18,7 @@ global proc AEVMTHexTilePocTemplate(string $nodeName)
     editorTemplate -beginLayout "Tiling" -collapse 0;
         editorTemplate -addControl "tileScale";
         editorTemplate -addControl "rotStrength";
+        editorTemplate -addControl "tileBlend";
     editorTemplate -endLayout;
 
     editorTemplate -beginLayout "Height Blend" -collapse 0;

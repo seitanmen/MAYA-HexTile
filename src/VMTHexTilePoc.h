@@ -33,6 +33,7 @@ public:
     static MObject aColorMap[kSlots];  // colorMap0..7 : color 入力（file.outColor を接続）
     static MObject aTileScale;   // float
     static MObject aRotStrength; // float
+    static MObject aTileBlend;   // float（タイル境界のボケ/シャープ。0.5=無調整, <0.5=ボケ, >0.5=シャープ）
     static MObject aHeightMap;   // color 入力（height/displacement file を接続）
     static MObject aHeightWeight;// float
     static MObject aHeightDelta; // float

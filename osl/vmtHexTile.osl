@@ -81,6 +81,22 @@ color vmt_s2l(color c)
         c[2] <= 0.04045 ? c[2] / 12.92 : pow((c[2] + 0.055) / 1.055, 2.4));
 }
 
+// tile blend（gain カーブ）。Nuke 版 gainScalar と同一。
+float vmt_gain(float x, float k)
+{
+    return x < 0.5 ? 0.5 * pow(2.0 * x, k) : 1.0 - 0.5 * pow(2.0 * (1.0 - x), k);
+}
+// ブレンド重み W に tileBlend の gain を適用し再正規化。
+//   tb=0.5 無調整, <0.5 境界ボケ, >0.5 境界シャープ。
+void vmt_bgain(float tb, output float W0, output float W1, output float W2)
+{
+    if (tb == 0.5) return;
+    float k = log(1.0 - tb) / log(0.5);
+    float g0 = vmt_gain(W0, k), g1 = vmt_gain(W1, k), g2 = vmt_gain(W2, k);
+    float s = g0 + g1 + g2;
+    if (s > 0.0) { W0 = g0 / s; W1 = g1 / s; W2 = g2 / s; }
+}
+
 // 明示的フットプリント付きサンプル（境界の点線=ミップ不連続を回避）。
 //   タイル中心/ハッシュは定数なので、回転後 UV の screen 微分 =
 //   元 UV(st) の screen 微分をタイル回転(ca,sa)したもの（滑らか・境界ジャンプ無し）。
@@ -104,6 +120,7 @@ shader vmtHexTile
     float  uvV = v,
     float  tileScale   = 2.0,
     float  rotStrength = 0.5,
+    float  tileBlend   = 0.5,   // 0.5=無調整, <0.5=境界ボケ, >0.5=境界シャープ
 
     string colorMap0 = "", int srgb0 = 1,
     string colorMap1 = "", int srgb1 = 1,
@@ -179,6 +196,7 @@ shader vmtHexTile
     }
     float sm = W0 + W1 + W2;
     if (sm > 0.0) { W0 /= sm; W1 /= sm; W2 /= sm; }
+    vmt_bgain(tileBlend, W0, W1, W2);   // tile blend（境界のボケ/シャープ）
 
     // ---- カラー 8 スロット ----
     string cm[8]  = { colorMap0, colorMap1, colorMap2, colorMap3,

@@ -61,6 +61,7 @@ public:
 
         AiNodeSetFlt(node, "tileScale",   FindMayaPlug("tileScale").asFloat());
         AiNodeSetFlt(node, "rotStrength", FindMayaPlug("rotStrength").asFloat());
+        AiNodeSetFlt(node, "tileBlend",   FindMayaPlug("tileBlend").asFloat());
 
         // colorMap0..7（接続 file のパス＋per-map sRGB）
         for (int i = 0; i < 8; ++i) {
