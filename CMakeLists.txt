@@ -45,3 +45,38 @@ if(DEPLOY_DIR)
 endif()
 
 message(STATUS "Configured VMTHexTilePoc (Maya: ${MAYA_LOCATION})")
+
+# ---------------------------------------------------------------------------
+# Arnold (MtoA) 翻訳プラグイン（任意。Arnold が見つかれば一緒にビルド）
+#   VMTHexTilePoc → OSL ノード vmtHexTile に翻訳して Arnold で描画する拡張 .dll
+# ---------------------------------------------------------------------------
+if(NOT ARNOLD_LOCATION AND NOT DEFINED ENV{ARNOLD_LOCATION})
+    set(ARNOLD_LOCATION "C:/Program Files/Autodesk/Arnold/Maya2026")
+endif()
+
+if(EXISTS "${ARNOLD_LOCATION}/include/arnold/ai.h")
+    add_library(vmtHexTileArnold MODULE src/arnold/VMTHexTileArnold.cpp)
+    target_include_directories(vmtHexTileArnold PRIVATE
+        "${ARNOLD_LOCATION}/include/mtoa"
+        "${ARNOLD_LOCATION}/include/arnold"
+        "${ARNOLD_LOCATION}/include")
+    target_link_libraries(vmtHexTileArnold PRIVATE Maya::Maya
+        "${ARNOLD_LOCATION}/lib/ai.lib"
+        "${ARNOLD_LOCATION}/lib/mtoa_api.lib")
+    # MtoA 拡張は .dll（接頭辞 lib なし）
+    set_target_properties(vmtHexTileArnold PROPERTIES PREFIX "" SUFFIX ".dll")
+    if(MSVC)
+        target_compile_options(vmtHexTileArnold PRIVATE /EHsc /MD /utf-8 /bigobj /Zi)
+        target_link_options(vmtHexTileArnold PRIVATE /DEBUG)
+    endif()
+    if(DEPLOY_ARNOLD_DIR)
+        add_custom_command(TARGET vmtHexTileArnold POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "$<TARGET_FILE:vmtHexTileArnold>"
+                "${DEPLOY_ARNOLD_DIR}/$<TARGET_FILE_NAME:vmtHexTileArnold>"
+            COMMENT "Deploying vmtHexTileArnold to ${DEPLOY_ARNOLD_DIR}")
+    endif()
+    message(STATUS "Configured vmtHexTileArnold (Arnold: ${ARNOLD_LOCATION})")
+else()
+    message(STATUS "Arnold not found at ${ARNOLD_LOCATION}; skipping vmtHexTileArnold")
+endif()
