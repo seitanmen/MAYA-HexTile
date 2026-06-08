@@ -372,7 +372,7 @@ MString buildTexCheckFragmentXML(const MString& fragmentName, bool decodeSrgb, b
 
     // 共通 HLSL ヘルパ（+ height 用）
     std::string hH =
-"float2 vmt_hash(float2 p){float2 r=float2(dot(p,float2(127.1,311.7)),dot(p,float2(269.5,183.3)));return frac(sin(r)*43758.5453);}\n"
+"float2 vmt_hash(float2 p){int ix=(int)floor(p.x+0.5),iy=(int)floor(p.y+0.5);uint h=uint(ix)*0x9E3779B1u+uint(iy)*0x85EBCA77u;h^=(h>>16)&0xFFFFu;h*=0x85EBCA6Bu;h^=(h>>13)&0x7FFFFu;h*=0xC2B2AE35u;h^=(h>>16)&0xFFFFu;return float2((float)(h&0xFFFFu)/65536.0,(float)((h>>16)&0xFFFFu)/65536.0);}\n"
 "void vmt_tri(float2 st,out float3 w,out float2 v1,out float2 v2,out float2 v3){const float sc=2.0*1.7320508;float2 s=st*sc;float skx=s.x-0.57735027*s.y;float sky=1.15470054*s.y;float2 b=floor(float2(skx,sky));float fx=skx-b.x,fy=sky-b.y,fz=1.0-fx-fy;float g=(fz<0.0)?1.0:0.0;float s2=2.0*g-1.0;w=float3(-fz*s2,g-fy*s2,g-fx*s2);v1=b+float2(g,g);v2=b+float2(g,1.0-g);v3=b+float2(1.0-g,g);}\n"
 "float2 vmt_cen(float2 v){const float id=1.0/(2.0*1.7320508);return float2((v.x+0.5*v.y)*id,(0.8660254*v.y)*id);}\n"
 "void vmt_rot(float2 ix,float rs,out float ca,out float sa){const float PI=3.14159265,TAU=6.28318531;float a=abs(ix.x*ix.y)+abs(ix.x+ix.y)+PI;a=fmod(a,TAU);if(a<0.0)a+=TAU;if(a>PI)a-=TAU;a*=rs;ca=cos(a);sa=sin(a);}\n"
@@ -428,7 +428,7 @@ MString buildTexCheckFragmentXML(const MString& fragmentName, bool decodeSrgb, b
 
     // 共通 GLSL ヘルパ（+ height 用）
     std::string gH =
-"vec2 vmt_hash(vec2 p){vec2 r=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));return fract(sin(r)*43758.5453);}\n"
+"vec2 vmt_hash(vec2 p){int ix=int(floor(p.x+0.5)),iy=int(floor(p.y+0.5));uint h=uint(ix)*0x9E3779B1u+uint(iy)*0x85EBCA77u;h^=(h>>16)&0xFFFFu;h*=0x85EBCA6Bu;h^=(h>>13)&0x7FFFFu;h*=0xC2B2AE35u;h^=(h>>16)&0xFFFFu;return vec2(float(h&0xFFFFu)/65536.0,float((h>>16)&0xFFFFu)/65536.0);}\n"
 "void vmt_tri(vec2 st,out vec3 w,out vec2 v1,out vec2 v2,out vec2 v3){const float sc=2.0*1.7320508;vec2 s=st*sc;float skx=s.x-0.57735027*s.y;float sky=1.15470054*s.y;vec2 b=floor(vec2(skx,sky));float fx=skx-b.x,fy=sky-b.y,fz=1.0-fx-fy;float g=(fz<0.0)?1.0:0.0;float s2=2.0*g-1.0;w=vec3(-fz*s2,g-fy*s2,g-fx*s2);v1=b+vec2(g,g);v2=b+vec2(g,1.0-g);v3=b+vec2(1.0-g,g);}\n"
 "vec2 vmt_cen(vec2 v){const float id=1.0/(2.0*1.7320508);return vec2((v.x+0.5*v.y)*id,(0.8660254*v.y)*id);}\n"
 "void vmt_rot(vec2 ix,float rs,out float ca,out float sa){const float PI=3.14159265,TAU=6.28318531;float a=abs(ix.x*ix.y)+abs(ix.x+ix.y)+PI;a=mod(a,TAU);if(a>PI)a-=TAU;a*=rs;ca=cos(a);sa=sin(a);}\n"
@@ -636,7 +636,7 @@ static std::set<std::string>& dynRegistry()
 static std::string hlslHelpers(bool useHeight, bool useNormal)
 {
     std::string h =
-"float2 vmt_hash(float2 p){float2 r=float2(dot(p,float2(127.1,311.7)),dot(p,float2(269.5,183.3)));return frac(sin(r)*43758.5453);}\n"
+"float2 vmt_hash(float2 p){int ix=(int)floor(p.x+0.5),iy=(int)floor(p.y+0.5);uint h=uint(ix)*0x9E3779B1u+uint(iy)*0x85EBCA77u;h^=(h>>16)&0xFFFFu;h*=0x85EBCA6Bu;h^=(h>>13)&0x7FFFFu;h*=0xC2B2AE35u;h^=(h>>16)&0xFFFFu;return float2((float)(h&0xFFFFu)/65536.0,(float)((h>>16)&0xFFFFu)/65536.0);}\n"
 "void vmt_tri(float2 st,out float3 w,out float2 v1,out float2 v2,out float2 v3){const float sc=2.0*1.7320508;float2 s=st*sc;float skx=s.x-0.57735027*s.y;float sky=1.15470054*s.y;float2 b=floor(float2(skx,sky));float fx=skx-b.x,fy=sky-b.y,fz=1.0-fx-fy;float g=(fz<0.0)?1.0:0.0;float s2=2.0*g-1.0;w=float3(-fz*s2,g-fy*s2,g-fx*s2);v1=b+float2(g,g);v2=b+float2(g,1.0-g);v3=b+float2(1.0-g,g);}\n"
 "float2 vmt_cen(float2 v){const float id=1.0/(2.0*1.7320508);return float2((v.x+0.5*v.y)*id,(0.8660254*v.y)*id);}\n"
 "void vmt_rot(float2 ix,float rs,out float ca,out float sa){const float PI=3.14159265,TAU=6.28318531;float a=abs(ix.x*ix.y)+abs(ix.x+ix.y)+PI;a=fmod(a,TAU);if(a<0.0)a+=TAU;if(a>PI)a-=TAU;a*=rs;ca=cos(a);sa=sin(a);}\n"
@@ -655,7 +655,7 @@ static std::string hlslHelpers(bool useHeight, bool useNormal)
 static std::string glslHelpers(bool useHeight, bool useNormal)
 {
     std::string h =
-"vec2 vmt_hash(vec2 p){vec2 r=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));return fract(sin(r)*43758.5453);}\n"
+"vec2 vmt_hash(vec2 p){int ix=int(floor(p.x+0.5)),iy=int(floor(p.y+0.5));uint h=uint(ix)*0x9E3779B1u+uint(iy)*0x85EBCA77u;h^=(h>>16)&0xFFFFu;h*=0x85EBCA6Bu;h^=(h>>13)&0x7FFFFu;h*=0xC2B2AE35u;h^=(h>>16)&0xFFFFu;return vec2(float(h&0xFFFFu)/65536.0,float((h>>16)&0xFFFFu)/65536.0);}\n"
 "void vmt_tri(vec2 st,out vec3 w,out vec2 v1,out vec2 v2,out vec2 v3){const float sc=2.0*1.7320508;vec2 s=st*sc;float skx=s.x-0.57735027*s.y;float sky=1.15470054*s.y;vec2 b=floor(vec2(skx,sky));float fx=skx-b.x,fy=sky-b.y,fz=1.0-fx-fy;float g=(fz<0.0)?1.0:0.0;float s2=2.0*g-1.0;w=vec3(-fz*s2,g-fy*s2,g-fx*s2);v1=b+vec2(g,g);v2=b+vec2(g,1.0-g);v3=b+vec2(1.0-g,g);}\n"
 "vec2 vmt_cen(vec2 v){const float id=1.0/(2.0*1.7320508);return vec2((v.x+0.5*v.y)*id,(0.8660254*v.y)*id);}\n"
 "void vmt_rot(vec2 ix,float rs,out float ca,out float sa){const float PI=3.14159265,TAU=6.28318531;float a=abs(ix.x*ix.y)+abs(ix.x+ix.y)+PI;a=mod(a,TAU);if(a>PI)a-=TAU;a*=rs;ca=cos(a);sa=sin(a);}\n"

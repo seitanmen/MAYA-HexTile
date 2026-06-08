@@ -30,10 +30,18 @@ void vmt_tri(float sx, float sy,
     v3x = bx + 1.0 - g; v3y = by + g;
 }
 
+// 決定論的整数ハッシュ(murmur3 fmix32)。GPU(HLSL/GLSL)と CPU(OSL) でビット一致。
+//   シフトはマスクして符号付き>>(算術)でも uint logical と同結果にする。
 void vmt_hash2(float vx, float vy, output float hx, output float hy)
 {
-    hx = vmtfrac(sin(vx * 127.1 + vy * 311.7) * 43758.5453);
-    hy = vmtfrac(sin(vx * 269.5 + vy * 183.3) * 43758.5453);
+    int ix = int(floor(vx + 0.5));
+    int iy = int(floor(vy + 0.5));
+    int h = ix * 0x9E3779B1 + iy * 0x85EBCA77;
+    h = h ^ ((h >> 16) & 0xFFFF);  h = h * 0x85EBCA6B;
+    h = h ^ ((h >> 13) & 0x7FFFF); h = h * 0xC2B2AE35;
+    h = h ^ ((h >> 16) & 0xFFFF);
+    hx = float(h & 0xFFFF) / 65536.0;
+    hy = float((h >> 16) & 0xFFFF) / 65536.0;
 }
 
 void vmt_cen(float vx, float vy, output float cx, output float cy)
