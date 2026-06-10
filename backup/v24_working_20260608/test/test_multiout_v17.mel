@@ -1,7 +1,7 @@
 // v17 複数出力テスト: outColor と outHeight を別々の平面で同時表示
 file -f -new;
 catch(`unloadPlugin "VMTHexTilePoc_v17"`);
-loadPlugin "C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/build/Release/VMTHexTilePoc_v18.mll";
+loadPlugin "C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/build/Release/VMTHexTilePoc_v18.mll";
 
 string $hex = `createNode VMTHexTilePoc`;
 string $p2d = `shadingNode -asUtility place2dTexture`;

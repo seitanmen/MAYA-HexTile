@@ -6,7 +6,7 @@
 
 string $albedo = "L:/Megascans/Downloaded/surface/rock_cliffs_tdwlcc1l/tdwlcc1l_8K_Albedo.png";
 // 単一出力版（aiOslShader で扱いやすい）。複数出力本番版は vmtHexTile.osl。
-string $oslPath = "C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/osl/vmtHexTileOne.osl";
+string $oslPath = "C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/osl/vmtHexTileOne.osl";
 
 if (!`pluginInfo -q -loaded mtoa`) loadPlugin "mtoa";
 

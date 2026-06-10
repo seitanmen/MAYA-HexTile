@@ -7,7 +7,7 @@
 #   - 生成した outColor0..7 等を Redshift マテリアルに接続すれば描画可能
 #
 # 使い方（Maya・Redshift ロード済み）:
-#   import sys; sys.path.append(r"C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/scripts")
+#   import sys; sys.path.append(r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/scripts")
 #   import vmtHexToRedshift as v; reload(v); v.run()        # 選択した VMTHexTilePoc を変換
 #
 # Copyright (c) 2026 kawata / VMT.
@@ -15,7 +15,7 @@
 import maya.cmds as cmds
 import maya.mel as mel
 
-OSL_PATH = r"C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/osl/vmtHexTile.osl"
+OSL_PATH = r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/osl/vmtHexTile.osl"
 
 
 def _set(node, attr, value, as_string=False):
@@ -48,53 +48,68 @@ def _file_path_srgb(plug):
     return (path, srgb)
 
 
-def convert(node):
-    if not cmds.pluginInfo("redshift4maya", q=True, loaded=True):
-        cmds.loadPlugin("redshift4maya")
-
-    osl = cmds.shadingNode("RedshiftOSLShader", asShader=True, name=node + "_RS")
-
-    # ソース = ファイル方式（sourceType の値は環境差があるので両方試す）
-    if not _set(osl, "sourceType", 1):
-        _set(osl, "sourceType", 0)
-    _set(osl, "sourceFilePath", OSL_PATH, as_string=True)
-    # コンパイル＆動的属性の再生成
-    try:
-        mel.eval('rsOSLShader -reloadSourceFile "%s";' % osl)
-    except Exception as e:
-        print("  warn: reloadSourceFile: %s" % e)
-
-    # 実際に作られた動的属性を表示（命名確認用）
-    print("\n==== %s のダイナミック属性 ====" % osl)
-    for a in (cmds.listAttr(osl, ud=True) or []):
-        print("   " + a)
-    print("==== ここまで ====\n")
+def _transfer(node, osl, attempt=1):
+    """OSL コンパイル後に VMTHexTilePoc のパラメータを RedshiftOSLShader へ転送。"""
+    if not cmds.objExists(osl):
+        return
+    # OSL がまだ読み込まれていなければ（colorMap0 が無ければ）少し待って再試行
+    if not cmds.objExists(osl + ".colorMap0"):
+        if attempt <= 20:
+            cmds.evalDeferred(lambda: _transfer(node, osl, attempt + 1), lowestPriority=True)
+        else:
+            print("[vmtHexToRedshift] 注意: %s の OSL 入力(colorMap0 等)が生成されませんでした。" % osl)
+            print("  AE で %s を開いて OSL が読み込まれているか確認してください。" % osl)
+            print("  実際の属性一覧:")
+            for a in (cmds.listAttr(osl, ud=True) or []):
+                print("     " + a)
+        return
 
     # スカラ
     _set(osl, "tileScale",   cmds.getAttr(node + ".tileScale"))
     _set(osl, "rotStrength", cmds.getAttr(node + ".rotStrength"))
     _set(osl, "tileBlend",   cmds.getAttr(node + ".tileBlend"))
-
     # カラー 8 スロット
     for i in range(8):
         path, srgb = _file_path_srgb(node + ".colorMap%d" % i)
         _set(osl, "colorMap%d" % i, path, as_string=True)
         _set(osl, "srgb%d" % i, 1 if srgb else 0)
-
     # height
     hp, _hs = _file_path_srgb(node + ".heightMap")
     _set(osl, "heightMap", hp, as_string=True)
     _set(osl, "heightWeight", cmds.getAttr(node + ".heightWeight"))
     _set(osl, "heightDelta",  cmds.getAttr(node + ".heightDelta"))
-
     # normal
     np_, _ns = _file_path_srgb(node + ".normalMap")
     _set(osl, "normalMap", np_, as_string=True)
     conv = cmds.getAttr(node + ".normalConvention")
     _set(osl, "normalFlipY", 1 if conv == 1 else 0)
 
-    print("[vmtHexToRedshift] 生成: %s" % osl)
+    print("[vmtHexToRedshift] %s にパラメータを転送しました。" % osl)
     print("  -> outColor0..7 / outHeight / outNormal を Redshift マテリアルに接続してください。")
+
+
+def convert(node):
+    if not cmds.pluginInfo("redshift4maya", q=True, loaded=True):
+        cmds.loadPlugin("redshift4maya")
+
+    osl = cmds.shadingNode("RedshiftOSLShader", asShader=True, name=node + "_RS")
+
+    # ソース = ファイル方式 → OSL を読み込み（動的属性は非同期生成）
+    if not _set(osl, "sourceType", 1):     # 1 = ファイル（環境差あれば 0 も試す）
+        _set(osl, "sourceType", 0)
+    _set(osl, "sourceFilePath", OSL_PATH, as_string=True)
+    try:
+        mel.eval('rsOSLShader -reloadSourceFile "%s";' % osl)
+    except Exception as e:
+        print("  warn: reloadSourceFile: %s" % e)
+    try:
+        cmds.refresh()
+    except Exception:
+        pass
+
+    print("[vmtHexToRedshift] 生成: %s （OSL コンパイル後にパラメータを自動転送します）" % osl)
+    # OSL コンパイル＆属性生成が非同期のため、転送は遅延実行＋リトライ
+    cmds.evalDeferred(lambda: _transfer(node, osl), lowestPriority=True)
     return osl
 
 

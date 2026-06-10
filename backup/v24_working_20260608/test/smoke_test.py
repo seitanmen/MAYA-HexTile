@@ -12,7 +12,7 @@ maya.standalone.initialize(name="python")
 import maya.cmds as cmds
 
 mll = sys.argv[1] if len(sys.argv) > 1 else \
-    r"C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/build/Release/VMTHexTilePoc.mll"
+    r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/build/Release/VMTHexTilePoc.mll"
 
 ok = True
 def check(label, cond):

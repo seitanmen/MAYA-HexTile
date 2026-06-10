@@ -41,7 +41,7 @@ maya_hextile/
 VS2022 + CMake。Maya 2026 のヘッダ/ライブラリは既存インストールを使用。
 
 ```powershell
-cd C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile
+cd C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile
 cmake -B build -G "Visual Studio 17 2022" -A x64 `
       -DMAYA_LOCATION="C:/Program Files/Autodesk/Maya2026"
 cmake --build build --config Release
@@ -55,8 +55,8 @@ cmake --build build --config Release
 
 ```mel
 // Script Editor (MEL)
-loadPlugin "C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/build/Release/VMTHexTilePoc.mll";
-source "C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/test/setup_poc.mel";
+loadPlugin "C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/build/Release/VMTHexTilePoc.mll";
+source "C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/test/setup_poc.mel";
 vmtPocBuild("C:/path/to/tileable_texture.png");   // タイラブルな画像を指定
 ```
 

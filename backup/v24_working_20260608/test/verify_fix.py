@@ -5,7 +5,7 @@ maya.standalone.initialize(name="python")
 import maya.cmds as cmds
 import maya.api.OpenMayaRender as omr
 
-mll = r"C:/Users/vmtadmin/Downloads/work/Maya_hex_tile/maya_hextile/build/Release/VMTHexTilePoc.mll"
+mll = r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/build/Release/VMTHexTilePoc.mll"
 ok = True
 def check(label, cond):
     global ok; print(("PASS" if cond else "FAIL")+" : "+label); ok = ok and cond
