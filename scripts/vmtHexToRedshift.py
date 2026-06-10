@@ -7,15 +7,19 @@
 #   - 生成した outColor0..7 等を Redshift マテリアルに接続すれば描画可能
 #
 # 使い方（Maya・Redshift ロード済み）:
-#   import sys; sys.path.append(r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/scripts")
+#   import sys; sys.path.append(r"<repo>/maya_hextile/scripts")   # ← このリポジトリの scripts パス
 #   import vmtHexToRedshift as v; reload(v); v.run()        # 選択した VMTHexTilePoc を変換
 #
 # Copyright (c) 2026 kawata / VMT.
 
+import os
 import maya.cmds as cmds
 import maya.mel as mel
 
-OSL_PATH = r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/osl/vmtHexTile.osl"
+# OSL ソースはこのスクリプトからの相対位置で解決（PC/ユーザ名に非依存）。
+#   scripts/vmtHexToRedshift.py -> ../osl/vmtHexTile.osl
+OSL_PATH = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "osl", "vmtHexTile.osl"))
 
 
 def _set(node, attr, value, as_string=False):

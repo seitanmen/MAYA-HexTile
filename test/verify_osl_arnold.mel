@@ -4,9 +4,9 @@
 // 使い方: 下の $albedo を実画像パスに変えて、Script Editor(MEL) で全選択実行。
 // その後 Arnold でレンダリング。
 
-string $albedo = "L:/Megascans/Downloaded/surface/rock_cliffs_tdwlcc1l/tdwlcc1l_8K_Albedo.png";
+string $albedo = "<albedo_texture.png>";          // ← 実画像パスに変更
 // 単一出力版（aiOslShader で扱いやすい）。複数出力本番版は vmtHexTile.osl。
-string $oslPath = "C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/osl/vmtHexTileOne.osl";
+string $oslPath = "<repo>/maya_hextile/osl/vmtHexTileOne.osl";   // ← このリポジトリの osl パスに変更
 
 if (!`pluginInfo -q -loaded mtoa`) loadPlugin "mtoa";
 

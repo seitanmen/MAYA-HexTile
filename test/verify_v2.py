@@ -1,10 +1,12 @@
 # verify_v2.py — uvFilterSize/outAlpha 追加と Hypershade 接続の回帰確認
 import sys
+import os
 import maya.standalone
 maya.standalone.initialize(name="python")
 import maya.cmds as cmds
 
-mll = r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/build/Release/VMTHexTilePoc_v2.mll"
+mll = os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "build", "Release", "VMTHexTilePoc_v2.mll"))
 ok = True
 def check(label, cond):
     global ok; print(("PASS" if cond else "FAIL")+" : "+label); ok = ok and cond

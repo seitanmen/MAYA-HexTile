@@ -1,11 +1,13 @@
 # verify_fix.py — 修正版の回帰確認（ヘッドレス）
 import sys
+import os
 import maya.standalone
 maya.standalone.initialize(name="python")
 import maya.cmds as cmds
 import maya.api.OpenMayaRender as omr
 
-mll = r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/build/Release/VMTHexTilePoc.mll"
+mll = os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "build", "Release", "VMTHexTilePoc.mll"))
 ok = True
 def check(label, cond):
     global ok; print(("PASS" if cond else "FAIL")+" : "+label); ok = ok and cond

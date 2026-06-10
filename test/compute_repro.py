@@ -1,11 +1,12 @@
 # compute_repro.py — compute() を強制実行してクラッシュを再現する。
 import sys
+import os
 import maya.standalone
 maya.standalone.initialize(name="python")
 import maya.cmds as cmds
 
-mll = sys.argv[1] if len(sys.argv) > 1 else \
-    r"C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/build/Release/VMTHexTilePoc.mll"
+mll = sys.argv[1] if len(sys.argv) > 1 else os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "build", "Release", "VMTHexTilePoc.mll"))
 
 cmds.loadPlugin(mll)
 hx = cmds.createNode("VMTHexTilePoc")

@@ -1,7 +1,7 @@
 // v17 複数出力テスト: outColor と outHeight を別々の平面で同時表示
 file -f -new;
 catch(`unloadPlugin "VMTHexTilePoc_v17"`);
-loadPlugin "C:/Users/vmtadmin/Downloads/work/hex_tile/maya_hextile/build/Release/VMTHexTilePoc_v18.mll";
+loadPlugin "<repo>/maya_hextile/build/Release/VMTHexTilePoc.mll";   // ← ビルド出力（または loadPlugin "VMTHexTilePoc";）
 
 string $hex = `createNode VMTHexTilePoc`;
 string $p2d = `shadingNode -asUtility place2dTexture`;
@@ -13,7 +13,7 @@ string $f=`shadingNode -asTexture -isColorManaged file`;
 string $fp=`shadingNode -asUtility place2dTexture`;
 connectAttr -f ($fp+".outUV") ($f+".uvCoord");
 connectAttr -f ($fp+".outUvFilterSize") ($f+".uvFilterSize");
-setAttr -type "string" ($f+".fileTextureName") "L:/Megascans/Downloaded/surface/rock_cliffs_tdwlcc1l/tdwlcc1l_8K_Albedo.png";
+setAttr -type "string" ($f+".fileTextureName") "<albedo_texture.png>";
 connectAttr -f ($f+".outColor") ($hex+".colorMaps[0]");
 
 // --- height (Raw) ---
@@ -22,7 +22,7 @@ string $hp=`shadingNode -asUtility place2dTexture`;
 connectAttr -f ($hp+".outUV") ($h+".uvCoord");
 connectAttr -f ($hp+".outUvFilterSize") ($h+".uvFilterSize");
 setAttr ($h+".colorSpace") -type "string" "Raw";
-setAttr -type "string" ($h+".fileTextureName") "L:/Megascans/Downloaded/surface/rock_cliffs_tdwlcc1l/tdwlcc1l_8K_Displacement.png";
+setAttr -type "string" ($h+".fileTextureName") "<displacement_texture.png>";
 connectAttr -f ($h+".outColor") ($hex+".heightMap");
 
 // === 平面1: outColor ===
