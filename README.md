@@ -4,93 +4,84 @@ Maya native plugin implementing **stochastic hex-tiling** to reduce visible repe
 
 ## Overview
 
-Based on "Practical Real-Time Hex-Tiling" by Morten S. Mikkelsen (JCGT 2022). This plugin provides Maya HyperShade-native nodes with VP2 (Viewport 2.0) rendering support and Redshift OSL integration.
+Based on "Practical Real-Time Hex-Tiling" by Morten S. Mikkelsen (JCGT 2022). This plugin provides a Maya HyperShade-native shading node with VP2 (Viewport 2.0) rendering support, plus Redshift OSL and Arnold shader implementations.
+
+> **Status:** Proof of Concept. The DG node and VP2 override are verified headless; viewport/swatch rendering requires GUI validation. The node class is currently `VMTHexTilePoc` (the `MTypeId 0x0007F140` is an internal test ID and must be reassigned before distribution).
 
 ## Features
 
-- **VMTHexTile**: Maya shading node with hex-based stochastic sampling
-- **VP2 Support**: Real-time viewport rendering via custom fragments
-- **Redshift OSL**: Redshift rendering with OSL shader
-- **Arnold Support**: Planned (Phase 5)
+- **VMTHexTilePoc**: Maya shading node (`texture/2d` classification) with hex-based stochastic sampling
+- **8 fixed color slots**: `colorMap0`..`colorMap7` inputs → `outColor0`..`outColor7` outputs
+- **VP2 Support**: Viewport rendering via dynamically built shade fragments (`FragmentBuilder`)
+- **Redshift OSL**: `osl/vmtHexTile.osl` (+ compiled `.oso`)
+- **Arnold**: `src/arnold/VMTHexTileArnold.cpp` (experimental)
 
-## Installation
+## Build (Windows / Maya 2026)
 
-### Build from Source
-
-```bash
+```bat
 cd maya_hextile
 cmake -G "Visual Studio 17 2022" -A x64 -B build ^
       -DMAYA_LOCATION="C:/Program Files/Autodesk/Maya2026"
 cmake --build build --config Release
 ```
 
-Output: `build/Release/VMTHexTile.mll`
+Output: `build/Release/VMTHexTilePoc.mll`
 
-### Maya Module Setup
+> The output base name can be changed with `-DPLUGIN_OUTPUT_NAME=...` (useful when Maya has an older `.mll` loaded and locked).
 
-Create `C:/Users/<user>/Documents/maya/2026/modules/VMTHexTile.mod`:
-```
-+ VMTHexTile 1.0 .
-```
-
-Add to MAYA_PLUGIN_PATH:
-```python
-import os
-os.environ['MAYA_PLUGIN_PATH'] = os.path.join(os.path.dirname(__file__), 'maya_hextile', 'build', 'Release')
-```
-
-### Redshift OSL Deployment
-
-OSL shader: `osl/vmtHexTile.osl`
-
-Deploy to Redshift OSL path or set `OSL_SHADER_PATHS` environment variable.
-
-## Usage
-
-### Load Plugin
+## Load & Test
 
 ```mel
-loadPlugin("<repo>/maya_hextile/build/Release/VMTHexTile.mll");
+loadPlugin "<repo>/maya_hextile/build/Release/VMTHexTilePoc.mll";
 ```
 
-### Create Node in HyperShade
+In HyperShade: **Create → Texture → VMTHexTilePoc**, then connect `file` nodes into `colorMap0`..`colorMap7` and wire `outColor0` (etc.) into a material.
 
-1. Open HyperShade
-2. Create → Texture → VMTHexTile
-3. Connect texture maps to `colorMaps[]` array
-4. Connect output to material
+Headless smoke tests live in `test/` (run with `mayapy`).
 
-### Parameters
+### Redshift OSL
 
-| Attribute | Type | Description | Default |
-|-----------|------|-------------|---------|
-| `colorMaps[]` | array | Input texture maps (1-N) | empty |
-| `tileScale` | float | Hex grid density | 1.0 |
-| `rotStrength` | float | Rotation randomness | 0.5 |
-| `tileBlend` | float | Barycentric weight exponent | 0.5 |
-| `heightWeight` | float | Height blend influence | 1.0 |
-| `heightDelta` | float | Height transition width | 0.2 |
+OSL shader: `osl/vmtHexTile.osl` (compiled `osl/vmtHexTile.oso`, Redshift variant `osl/vmtHexTile_rs.oso`).
+Deploy via `scripts/vmtHexToRedshift.py` (resolves the OSL path relative to the script).
+
+## Parameters
+
+| Attribute (long) | Short | Type | Description | Default |
+|------------------|-------|------|-------------|---------|
+| `colorMap0`..`colorMap7` | — | color | Input texture maps (8 fixed slots) | — |
+| `tileScale` | `tsc` | float | Hex grid density | 2.0 |
+| `rotStrength` | `rot` | float | Rotation randomness | 0.5 |
+| `tileBlend` | `tbl` | float | Blend contrast | 0.5 |
+| `heightMap` | — | color | Optional height input | — |
+| `heightWeight` | `hwt` | float | Height blend influence | 1.0 |
+| `heightDelta` | `hdl` | float | Height transition width | 0.2 |
+| `normalConvention` | `ncv` | enum | OpenGL / DirectX | 0 |
+| `outColor0`..`outColor7` | — | color | Hex-tiled outputs (unconnected = black) | — |
 
 ## Algorithm Details
 
 - **TriangleGrid**: Pixel → 3 hex vertices with random offsets/rotations
-- **Hash**: Per-vertex randomness (murmur3-based for cross-platform consistency)
-- **Sampling**: Gradient-based filtering with UV wrapping
-- **Blending**: 
-  - Luminance-based: Barycentric weight^γ × luminance diffusion (Rec.601)
-  - Height-based: Soft threshold transition
+- **Hash**: `frac(sin(dot)*43758.5453)` per-vertex (ported from the Nuke version; see cross-platform note below)
+- **Sampling**: gradient-based filtering with UV wrapping
+- **Blending**:
+  - Luminance-based: barycentric weight^γ × luminance diffusion (Rec.601)
+  - Height-based: soft threshold transition
+
+> **PoC note:** the DG node's `compute()` currently passes `colorMap{i}` straight through to `outColor{i}`; the actual hex compositing runs in the VP2 shade fragment (and in the OSL/Arnold shaders). DG-only renderers will not show the hex-tiling effect yet.
+
+> **Cross-platform note:** the `sin`-based hash is not guaranteed bit-identical across CPU/GPU/OSL. An integer-hash (murmur3) replacement is proposed in the workspace docs for exact Nuke/Arnold/Redshift/VP2 agreement but is **not yet applied**.
 
 ## Requirements
 
 - Visual Studio 2022 (MSVC v143)
 - CMake 4.x
-- Maya 2026 (or 2023 with modified MAYA_LOCATION)
-- Redshift 3.x+ (for OSL rendering)
+- Maya 2026 (or 2023 with `-DMAYA_LOCATION` pointing at the 2023 install)
+- Redshift (for OSL rendering)
 - Windows only
 
 ## License
 
-MPL-2.0 (Mozilla Public License 2.0) - See [LICENSE](LICENSE)
+MPL-2.0 (Mozilla Public License 2.0) — See [LICENSE](LICENSE)
 
 ## Citation
 
@@ -107,11 +98,10 @@ Reference implementation: https://github.com/mmikk/hextile-demo (MIT License)
 
 ## Author
 
-Seitanmen - https://github.com/seitanmen
+Seitanmen — https://github.com/seitanmen
 
 ## Documentation
 
-Additional documentation available in `docs/`:
-- [Specification](../../docs/01_HexTile仕様書.md)
-- [Implementation Plan](../../docs/03_Maya実装計画.md)
-- [Development Notes](../../docs/README.md)
+Design specs and implementation notes are maintained in the workspace `docs/` folder
+(outside this repository): `02_Mayaノード規格.md`, `03_Maya実装計画.md`,
+`01_Maya移植_調査ナレッジ.md`.
