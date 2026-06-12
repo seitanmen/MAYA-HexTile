@@ -10,11 +10,11 @@ Based on "Practical Real-Time Hex-Tiling" by Morten S. Mikkelsen (JCGT 2022). Th
 
 ## Features
 
-- **VMTHexTilePoc**: Maya shading node (`texture/2d` classification) with hex-based stochastic sampling
-- **8 fixed color slots**: `colorMap0`..`colorMap7` inputs → `outColor0`..`outColor7` outputs
+- **VMTHexTilePoc**: Maya shading node (classification `texture/2d:drawdb/shader/texture/2d/VMTHexTilePoc`) with hex-based stochastic sampling
+- **8 fixed color slots**: `colorMap0`..`colorMap7` inputs → `outColor0`..`outColor7` outputs, plus an optional `normalMap` input → `outNormal`
 - **VP2 / GUI rendering**: the node renders natively in Viewport 2.0. The VP2 override loads textures via `MTextureManager` and builds shade fragments dynamically (`FragmentBuilder`), so the hex effect is visible in the interactive viewport and swatches.
-- **Arnold**: native MtoA node translation (`src/arnold/`) — the node renders in Arnold as-is, no manual conversion.
-- **Redshift (OSL)**: Redshift has **no public node-translation SDK**, so there is no automatic translator. Instead, `scripts/vmtHexToRedshift.py` generates a `RedshiftOSLShader` network from the node (one click), loading the verified `osl/vmtHexTile.osl`. OSL must be (re)built/compiled manually via that script path.
+- **Arnold**: renders via MtoA node translation without replacing the node (see [Arnold](#arnold)).
+- **Redshift (OSL)**: no public translation SDK, so a one-click script generates a `RedshiftOSLShader` network (see [Redshift (OSL)](#redshift-osl)).
 
 ## Build (Windows / Maya 2026)
 
@@ -41,7 +41,7 @@ Headless smoke tests live in `test/` (run with `mayapy`).
 
 ### Arnold
 
-Renders natively through the MtoA node translator (`src/arnold/`). Connect the node into an Arnold material — no manual conversion step.
+Renders through the MtoA node translator (`src/arnold/`) without replacing the node. Connect the node into an Arnold material. Deploy step: place `osl/vmtHexTile.oso` on `ARNOLD_PLUGIN_PATH` (Arnold reads it as the `vmtHexTile` node type) and the built extension `.dll` on `MTOA_EXTENSIONS_PATH` (registers the translator).
 
 ### Redshift (OSL)
 
@@ -52,39 +52,42 @@ import sys; sys.path.append(r"<repo>/maya_hextile/scripts")
 import vmtHexToRedshift as v; v.run()   # converts the selected VMTHexTilePoc
 ```
 
-It loads `osl/vmtHexTile.osl` (resolved relative to the script), transfers `tileScale`/`rotStrength`/`tileBlend`/height/normal, and pulls each connected `file` path + colorSpace into `colorMap{i}`/`srgb{i}`. Connect the generated `outColor0`..`outColor7` to a Redshift material. The OSL (`osl/vmtHexTile.oso`, Redshift variant `osl/vmtHexTile_rs.oso`) is built/compiled manually through this path.
+It loads `osl/vmtHexTile.osl` (resolved relative to the script), transfers `tileScale`/`rotStrength`/`tileBlend`/height/normal, and pulls each connected `file` path + colorSpace into `colorMap{i}`/`srgb{i}`. Connect the generated `outColor0`..`outColor7` to a Redshift material. The OSL is compiled ahead of time to `osl/vmtHexTile.oso` (the repo also ships a `osl/vmtHexTile_rs.oso` build); recompile with `oslc` if you edit the `.osl`.
 
 ## Parameters
 
 | Attribute (long) | Short | Type | Description | Default |
 |------------------|-------|------|-------------|---------|
-| `colorMap0`..`colorMap7` | — | color | Input texture maps (8 fixed slots) | — |
+| `colorMap0`..`colorMap7` | `cm0`..`cm7` | color | Input texture maps (8 fixed slots) | — |
 | `tileScale` | `tsc` | float | Hex grid density | 2.0 |
 | `rotStrength` | `rot` | float | Rotation randomness | 0.5 |
 | `tileBlend` | `tbl` | float | Blend contrast | 0.5 |
-| `heightMap` | — | color | Optional height input | — |
+| `heightMap` | `hm` | color | Optional height input | — |
 | `heightWeight` | `hwt` | float | Height blend influence | 1.0 |
 | `heightDelta` | `hdl` | float | Height transition width | 0.2 |
-| `normalConvention` | `ncv` | enum | OpenGL / DirectX | 0 |
-| `outColor0`..`outColor7` | — | color | Hex-tiled outputs (unconnected = black) | — |
+| `normalMap` | `nm` | color | Optional tangent-space normal input | — |
+| `normalConvention` | `ncv` | enum | OpenGL (0) / DirectX (1) | 0 |
+| `outColor0`..`outColor7` | `ocl0`..`ocl7` | color | Hex-tiled color outputs (unconnected = black) | — |
+| `outColor` | `ocl` | color | Standard swatch/color output | — |
+| `outNormal` | `onr` | color | Hex-tiled normal output | — |
 
 ## Algorithm Details
 
 - **TriangleGrid**: Pixel → 3 hex vertices with random offsets/rotations
-- **Hash**: `frac(sin(dot)*43758.5453)` per-vertex (ported from the Nuke version; see cross-platform note below)
-- **Sampling**: gradient-based filtering with UV wrapping
+- **Hash**: murmur3-style integer hash (`fmix32`) — see note below
+- **Sampling**: gradient-based filtering (`SampleGrad`) with UV wrapping
 - **Blending**:
   - Luminance-based: barycentric weight^γ × luminance diffusion (Rec.601)
   - Height-based: soft threshold transition
 
-> **Where the hex compositing runs:** the effect is implemented per-renderer — the VP2 shade fragment (interactive viewport), the Arnold node translator, and the OSL shader. The DG node's `compute()` is only a CPU fallback for software swatches and passes `colorMap{i}` through unmodified; it is not the rendering path.
+> **Where the hex compositing runs:** the effect is implemented per-renderer — the VP2 shade fragment (interactive viewport), the Arnold node translator, and the OSL shader. The DG node's `compute()` is only a CPU fallback for software swatches/soft renders (color slots pass through; alpha/height/normal return defaults); it is not the rendering path.
 
-> **Cross-platform note:** the `sin`-based hash is not guaranteed bit-identical across CPU/GPU/OSL. An integer-hash (murmur3) replacement is proposed in the workspace docs for exact Nuke/Arnold/Redshift/VP2 agreement but is **not yet applied**.
+> **Hash note:** the active rendering paths — the dynamically built VP2 fragment (`FragmentBuilder::hlslHelpers`) and the OSL shader (`vmtHexTile.osl`) — use an integer murmur3 `fmix32` hash, chosen for consistent results across CPU/GPU/OSL. An older `frac(sin(dot)*43758.5453)` hash remains only in the legacy static-fragment path (`hlslSource`/`glslSource`), which the override does not select.
 
 ## Requirements
 
 - Visual Studio 2022 (MSVC v143)
-- CMake 4.x
+- CMake 3.16+
 - Maya 2026 (or 2023 with `-DMAYA_LOCATION` pointing at the 2023 install)
 - Redshift (for OSL rendering)
 - Windows only
